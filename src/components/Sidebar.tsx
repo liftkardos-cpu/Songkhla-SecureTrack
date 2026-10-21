@@ -21,6 +21,7 @@ interface SidebarProps {
   onClose: () => void;
   totalRecordsCount: number;
   urgentCount: number;
+  onResetToDefault?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -30,6 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   totalRecordsCount,
   urgentCount,
+  onResetToDefault,
 }) => {
   const navItems = [
     {
@@ -93,15 +95,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Brand Header */}
         <div className="p-5 border-b border-slate-800/80 flex items-center justify-between bg-gradient-to-b from-slate-900 to-slate-950">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 border border-blue-400/30 flex items-center justify-center text-amber-300 shadow-lg shadow-blue-900/30">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 border border-blue-400/30 flex items-center justify-center text-amber-300 shadow-lg shadow-blue-900/30 shrink-0">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <div className="text-sm font-bold text-white tracking-tight leading-snug">
-                กลุ่มงานความมั่นคง
+              <div className="text-sm font-bold text-white tracking-tight leading-snug font-heading flex items-center gap-1.5">
+                <span>Songkhla SecureTrack</span>
               </div>
-              <div className="text-[11px] text-amber-400/90 font-medium">
-                ที่ทำการปกครองจังหวัดสงขลา
+              <div className="text-[11px] text-amber-400/90 font-medium line-clamp-1">
+                ระบบติดตามและตรวจสอบความปลอดภัย
               </div>
             </div>
           </div>
@@ -115,9 +117,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* System Subtitle */}
         <div className="px-5 py-2.5 bg-blue-950/40 border-b border-blue-900/30 text-[11px] text-blue-200/80 flex items-center justify-between">
-          <span className="font-medium">ระบบติดตามสถานบริการ</span>
-          <span className="px-1.5 py-0.5 rounded bg-blue-900/60 text-[10px] text-blue-300 border border-blue-700/40 font-mono">
-            V2.0 PRO
+          <span className="font-medium line-clamp-1">กิจการควบคุม จ.สงขลา (16 อำเภอ)</span>
+          <span className="px-1.5 py-0.5 rounded bg-blue-900/60 text-[10px] text-blue-300 border border-blue-700/40 font-mono shrink-0">
+            SECURE-V2
           </span>
         </div>
 
@@ -173,16 +175,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
 
         {/* Bottom Officer & Jurisdiction Card */}
-        <div className="p-3 border-t border-slate-800/80 bg-slate-950/80">
+        <div className="p-3 border-t border-slate-800/80 bg-slate-950/80 space-y-2">
           <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-2">
-            <div className="flex items-center gap-2 text-slate-300 font-medium">
-              <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span>พื้นที่รับผิดชอบ: 16 อำเภอ</span>
+            <div className="flex items-center justify-between text-slate-300 font-medium">
+              <span className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>พื้นที่ 16 อำเภอ</span>
+              </span>
+              <span className="text-[10px] text-emerald-400 flex items-center gap-1 font-mono">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Storage พร้อม
+              </span>
             </div>
             <div className="text-[11px] text-slate-400 leading-relaxed">
-              ครอบคลุมสถานบริการ ผับ บาร์ คาราโอเกะ โรงแรม และกิจการควบคุม
+              บันทึกข้อมูลปลอดภัยลงในอุปกรณ์อัตโนมัติ (Persistent localStorage)
             </div>
           </div>
+
+          {onResetToDefault && (
+            <button
+              onClick={onResetToDefault}
+              className="w-full py-2 px-3 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-900/60 hover:bg-slate-900 text-slate-400 hover:text-slate-300 text-[11px] font-medium transition-all flex items-center justify-center gap-1.5"
+              title="รีเซ็ตเป็นข้อมูลตัวอย่างเริ่มต้นของสงขลา"
+            >
+              <span>รีเซ็ตเป็นข้อมูลตัวอย่างเริ่มต้น</span>
+            </button>
+          )}
         </div>
       </aside>
     </>

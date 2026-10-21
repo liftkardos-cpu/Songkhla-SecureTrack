@@ -83,10 +83,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-xs font-semibold text-blue-300">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              ศูนย์ปฏิบัติการความมั่นคงและจัดระเบียบสังคม จังหวัดสงขลา
+              Songkhla SecureTrack · กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา
             </div>
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white leading-snug">
-              ระบบสารสนเทศติดตามและควบคุมสถานบริการ โรงแรม และกิจการควบคุม
+              Songkhla SecureTrack ระบบติดตามและตรวจสอบความปลอดภัยและกิจการควบคุม จังหวัดสงขลา
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
               กำกับดูแลบังคับใช้ตาม พ.ร.บ. สถานบริการ พ.ศ. 2509, คำสั่งหัวหน้า คสช. ที่ 22/2558 (สั่งปิด 5 ปี), และ พ.ร.บ. โรงแรม พ.ศ. 2547 บูรณาการ 16 อำเภอ

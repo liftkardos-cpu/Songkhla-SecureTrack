@@ -46,12 +46,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
   const tabTitles: Record<NavTab, { title: string; subtitle: string }> = {
     dashboard: {
-      title: 'แดชบอร์ดภาพรวมการจัดระเบียบสังคม',
-      subtitle: 'Dashboard & Executive Overview · จังหวัดสงขลา',
+      title: 'Songkhla SecureTrack · ภาพรวมความปลอดภัยและกิจการควบคุม',
+      subtitle: 'ระบบติดตามและตรวจสอบความปลอดภัยและกิจการควบคุม จังหวัดสงขลา (16 อำเภอ)',
     },
     records: {
-      title: 'ฐานข้อมูลและทะเบียนผลการตรวจสอบ',
-      subtitle: 'Inspection Database & Records Management',
+      title: 'ฐานข้อมูลและทะเบียนผลการตรวจสอบ (Songkhla SecureTrack)',
+      subtitle: 'Inspection Database & Controlled Business Records Management',
     },
     analytics: {
       title: 'สถิติและกราฟวิเคราะห์เชิงลึก (Analytics)',

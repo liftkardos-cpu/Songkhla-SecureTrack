@@ -24,18 +24,18 @@ import {
   Plus
 } from 'lucide-react';
 
-const STORAGE_KEY_RECORDS = 'songkhla_security_inspection_records_v2';
-const STORAGE_KEY_LOGS = 'songkhla_security_inspection_logs_v2';
+const STORAGE_KEY_RECORDS = 'songkhla_securetrack_records_v1';
+const STORAGE_KEY_LOGS = 'songkhla_securetrack_logs_v1';
 
 export default function App() {
   // Navigation active tab
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Inspection records list with localStorage persistence
+  // Inspection records list with localStorage persistence (with backwards migration)
   const [records, setRecords] = useState<InspectionRecord[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_RECORDS);
+      const saved = localStorage.getItem(STORAGE_KEY_RECORDS) || localStorage.getItem('songkhla_security_inspection_records_v2');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -51,7 +51,7 @@ export default function App() {
   // Activity logs / Audit trail with localStorage persistence
   const [logs, setLogs] = useState<ActivityLog[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_LOGS);
+      const saved = localStorage.getItem(STORAGE_KEY_LOGS) || localStorage.getItem('songkhla_security_inspection_logs_v2');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -184,6 +184,17 @@ export default function App() {
     setActiveTab('records');
   };
 
+  // Reset to default sample data (Administrative tool)
+  const handleResetToDefault = () => {
+    if (confirm('คุณต้องการรีเซ็ตฐานข้อมูลเป็นชุดข้อมูลตัวอย่างเริ่มต้นของจังหวัดสงขลา (12 แห่ง) หรือไม่?\n\n*คำเตือน: ข้อมูลสถานบริการที่คุณได้บันทึกเพิ่มหรือแก้ไขไว้จะถูกย้อนกลับเป็นค่าเริ่มต้น')) {
+      setRecords(INITIAL_INSPECTION_RECORDS);
+      setLogs(INITIAL_ACTIVITY_LOGS);
+      localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(INITIAL_INSPECTION_RECORDS));
+      localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(INITIAL_ACTIVITY_LOGS));
+      alert('รีเซ็ตฐานข้อมูลเป็นค่าเริ่มต้นเรียบร้อยแล้ว');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-900 flex font-sans antialiased selection:bg-blue-600 selection:text-white">
       {/* 1. Sleek Modern Sidebar for Desktop & Slide-over Drawer for Mobile */}
@@ -194,6 +205,7 @@ export default function App() {
         onClose={() => setIsMobileSidebarOpen(false)}
         totalRecordsCount={records.length}
         urgentCount={urgentCount}
+        onResetToDefault={handleResetToDefault}
       />
 
       {/* 2. Main Content Viewport (Fluid widescreen width scaling up to 1920px) */}

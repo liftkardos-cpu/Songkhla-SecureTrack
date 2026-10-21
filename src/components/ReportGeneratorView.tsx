@@ -204,12 +204,12 @@ export const ReportGeneratorView: React.FC<ReportGeneratorViewProps> = ({ record
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           <a
-            href="/standalone_songkhla_security.html"
+            href="/songkhla_securetrack.html"
             target="_blank"
             rel="noreferrer"
-            download="ระบบฐานข้อมูลตรวจสอบสถานบริการ_สงขลา.html"
+            download="Songkhla_SecureTrack_ระบบติดตามและตรวจสอบความปลอดภัยและกิจการควบคุม_สงขลา.html"
             className="px-3 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs"
-            title="ดาวน์โหลดไฟล์ HTML เดี่ยวแบบทำงานออฟไลน์ได้ (Single-file HTML)"
+            title="ดาวน์โหลดไฟล์ Single-file HTML (Songkhla SecureTrack) พกพาเปิดใช้งานได้ทุกที่ ไม่ต้องต่อเน็ต"
           >
             <Download className="w-3.5 h-3.5 text-indigo-600" />
             <span>ดาวน์โหลด Single-file HTML</span>
