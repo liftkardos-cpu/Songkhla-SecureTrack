@@ -1,0 +1,6 @@
+{
+  "name": "Songkhla Security Inspection Tracker",
+  "description": "ระบบฐานข้อมูลและติดตามผลการตรวจสอบสถานบริการและกิจการควบคุม กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
