@@ -4,16 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Songkhla SecureTrack | ระบบติดตามและตรวจสอบความปลอดภัยและกิจการควบคุม จังหวัดสงขลา</title>
+  
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Sarabun & Prompt -->
+  
+  <!-- Google Fonts: Prompt & Sarabun -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  
   <style>
     body { font-family: 'Sarabun', sans-serif; }
     h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Prompt', 'Sarabun', sans-serif; }
@@ -26,8 +31,8 @@
 </head>
 <body class="bg-slate-100/70 text-slate-800 antialiased min-h-screen flex flex-col w-full selection:bg-blue-600 selection:text-white">
 
-  <!-- Fixed Top Header -->
-  <header class="bg-slate-950 border-b border-slate-800 text-white sticky top-0 z-30 shadow-md">
+  <!-- 1. FIXED TOP HEADER -->
+  <header class="bg-slate-950 border-b border-slate-800 text-white sticky top-0 z-40 shadow-md">
     <!-- Sub-bar -->
     <div class="px-3 sm:px-6 py-1.5 border-b border-slate-800/80 text-xs text-slate-400 flex flex-wrap items-center justify-between gap-2">
       <div class="flex items-center gap-2">
@@ -39,10 +44,11 @@
       <div class="flex items-center gap-3">
         <div id="liveClock" class="font-mono tabular-nums text-slate-300 text-xs hidden sm:block"></div>
         <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/60 text-[10px] font-mono flex items-center gap-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> localStorage Active
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> localStorage พร้อมใช้งาน
         </span>
       </div>
     </div>
+
     <!-- Main Top Bar -->
     <div class="w-full max-w-[1850px] mx-auto px-3 sm:px-6 py-3 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
@@ -52,32 +58,60 @@
         <div>
           <h1 class="text-sm sm:text-lg font-bold text-white tracking-tight leading-tight line-clamp-1 font-heading flex items-center gap-2">
             <span>Songkhla SecureTrack</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-900/80 text-blue-200 border border-blue-700/60 font-mono hidden sm:inline">V2.5</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-900/80 text-blue-200 border border-blue-700/60 font-mono hidden sm:inline">V2.6</span>
           </h1>
           <p class="text-[11px] sm:text-xs text-slate-400 line-clamp-1">
             ระบบติดตามและตรวจสอบความปลอดภัยและกิจการควบคุม จังหวัดสงขลา (16 อำเภอ)
           </p>
         </div>
       </div>
+
+      <!-- Action Buttons in Header -->
       <div class="flex items-center gap-2">
-        <button onclick="openModal()" class="px-3.5 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md flex items-center gap-1.5 transition-all min-h-[44px]">
+        <!-- Load Real/Sample Data Button -->
+        <button 
+          onclick="loadRealData()" 
+          class="px-3 py-1.5 sm:px-3.5 sm:py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-1.5 transition-all min-h-[40px] whitespace-nowrap"
+          title="โหลดข้อมูลตัวอย่างจริงของ 16 อำเภอในสงขลา บันทึกลง localStorage"
+        >
+          <i data-lucide="database" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">โหลดข้อมูลตัวอย่างจริง</span>
+          <span class="sm:hidden">โหลดจริง</span>
+        </button>
+
+        <!-- Reset to 0 Button -->
+        <button 
+          onclick="resetToZero()" 
+          class="px-2.5 py-1.5 sm:px-3 sm:py-2 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/80 rounded-xl text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-1.5 transition-all min-h-[40px] whitespace-nowrap"
+          title="รีเซ็ตข้อมูลเป็น 0 (Reset Data) และอัปเดต localStorage"
+        >
+          <i data-lucide="rotate-ccw" class="w-4 h-4 text-rose-400"></i>
+          <span class="hidden sm:inline">รีเซ็ตข้อมูลเป็น 0</span>
+          <span class="sm:hidden">รีเซ็ต 0</span>
+        </button>
+
+        <!-- Add Record Primary Button -->
+        <button 
+          onclick="openModal()" 
+          class="px-3.5 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md flex items-center gap-1.5 transition-all min-h-[40px] whitespace-nowrap"
+        >
           <i data-lucide="plus" class="w-4 h-4"></i>
-          <span class="hidden sm:inline">เพิ่มผลการตรวจใหม่</span>
+          <span class="hidden sm:inline">เพิ่มผลตรวจใหม่</span>
           <span class="sm:hidden">เพิ่มตรวจ</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Fluid Sticky Navigation Tabs -->
-  <div class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2 shadow-2xs sticky top-[72px] sm:top-[82px] z-20">
+  <!-- 2. STICKY NAVIGATION TABS -->
+  <div class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2 shadow-2xs sticky top-[72px] sm:top-[82px] z-30 no-print">
     <div class="w-full max-w-[1850px] mx-auto flex items-center justify-between gap-3 overflow-x-auto">
       <nav class="flex items-center gap-1.5">
         <button onclick="switchTab('dashboard')" id="tabBtn-dashboard" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-700 text-white transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap shadow-xs">
           <i data-lucide="layout-dashboard" class="w-4 h-4"></i> ภาพรวมสถิติ
         </button>
         <button onclick="switchTab('records')" id="tabBtn-records" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap">
-          <i data-lucide="database" class="w-4 h-4"></i> ฐานข้อมูลการตรวจ (<span id="recordCountBadge" class="font-mono">0</span>)
+          <i data-lucide="table" class="w-4 h-4"></i> ฐานข้อมูลการตรวจ (<span id="recordCountBadge" class="font-mono">0</span>)
         </button>
         <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap">
           <i data-lucide="pie-chart" class="w-4 h-4"></i> กราฟวิเคราะห์
@@ -91,394 +125,643 @@
       </nav>
 
       <div class="flex items-center gap-2 shrink-0">
-        <button onclick="resetToDefaultData()" class="text-[11px] text-slate-400 hover:text-rose-600 underline hidden sm:inline" title="ย้อนข้อมูลกลับเป็นตัวอย่างเริ่มต้น">
-          รีเซ็ตข้อมูลตัวอย่าง
-        </button>
+        <span class="text-xs text-slate-500 font-mono hidden lg:inline">
+          ระบบสารสนเทศความมั่นคง จ.สงขลา
+        </span>
       </div>
     </div>
   </div>
 
-  <!-- Main Fluid Viewport (Mobile-first & Scales to 1850px on Widescreen) -->
-  <main class="w-full max-w-[1850px] mx-auto p-3 sm:p-5 lg:p-7 flex-1 space-y-5 sm:space-y-6 pb-20 lg:pb-8">
+  <!-- 3. MAIN CONTENT BODY -->
+  <main class="flex-1 w-full max-w-[1850px] mx-auto p-3 sm:p-5 lg:p-7 space-y-6">
 
-    <!-- View 1: Dashboard -->
-    <section id="view-dashboard" class="space-y-5 sm:space-y-6">
-      <!-- Smart Reminder Alert Banner -->
-      <div id="alertBanner" class="bg-gradient-to-r from-rose-950 via-slate-900 to-indigo-950 text-white p-4 sm:p-5 rounded-2xl shadow-lg border border-rose-500/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-          <span class="relative flex h-3 w-3 shrink-0">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
-          </span>
+    <!-- ================= TAB 1: DASHBOARD ================= -->
+    <section id="view-dashboard" class="space-y-6">
+      
+      <!-- Zero Data Banner (When count is 0) -->
+      <div id="zeroDataBanner" class="hidden bg-amber-50/95 border border-amber-300 rounded-2xl p-5 text-amber-900 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-200 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+            <i data-lucide="info" class="w-5 h-5"></i>
+          </div>
           <div>
-            <div class="text-[11px] font-bold text-rose-300 uppercase tracking-wider flex items-center gap-1">
-              <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-rose-400"></i>
-              ระบบแจ้งเตือนอัจฉริยะ (Smart Reminder)
-            </div>
-            <h3 class="font-bold text-sm sm:text-base mt-0.5">
-              มีสถานประกอบการต้องตรวจซ้ำภายใน 7 วัน หรืออยู่ระหว่างสั่งควบคุมพิเศษ (คสช. 22/2558)
-            </h3>
-            <p class="text-xs text-slate-300 mt-0.5">ฝ่ายความมั่นคงประสานชุดเฉพาะกิจอำเภอเข้าตรวจติดตามผลตามกรอบเวลา</p>
+            <h4 class="font-bold text-sm text-amber-950 font-heading">
+              สถานะปัจจุบัน: ข้อมูลในระบบถูกรีเซ็ตเป็น 0 (Reset Data)
+            </h4>
+            <p class="text-xs text-amber-800 mt-0.5 leading-relaxed">
+              สถิติและทะเบียนการตรวจทั้งหมดเป็น 0 รายการ และถูกบันทึกใน localStorage เรียบร้อยแล้ว ท่านสามารถเริ่มกดปุ่ม "เพิ่มผลตรวจใหม่" หรือคลิกปุ่มด้านขวาเพื่อโหลดข้อมูลตัวอย่างจริง 16 อำเภอของสงขลา
+            </p>
           </div>
         </div>
-        <button onclick="switchTab('records')" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs min-h-[44px] flex items-center justify-center shrink-0">
-          ดูทะเบียนติดตามผล &rarr;
+        <button onclick="loadRealData()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 shrink-0 min-h-[40px]">
+          <i data-lucide="database" class="w-4 h-4"></i>
+          <span>โหลดข้อมูลตัวอย่างจริง</span>
         </button>
       </div>
 
-      <!-- KPI Stat Cards (1 col mobile, 2 col tablet, 4 col widescreen) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+      <!-- Hero Summary Banner -->
+      <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white rounded-2xl p-6 sm:p-7 shadow-lg border border-slate-800 relative overflow-hidden">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          <div class="space-y-2 max-w-2xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-xs font-semibold text-blue-300">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Songkhla SecureTrack · กิจการควบคุม 16 อำเภอ
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white leading-snug font-heading">
+              ระบบติดตามและตรวจสอบความปลอดภัยและกิจการควบคุม จังหวัดสงขลา
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              กำกับดูแลบังคับใช้ตาม พ.ร.บ. สถานบริการ พ.ศ. 2509, คำสั่งหัวหน้า คสช. ที่ 22/2558 (สั่งปิด 5 ปี), พ.ร.บ. โรงแรม พ.ศ. 2547 และกฎหมายควบคุมอาวุธปืน/ของเก่า
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button onclick="loadRealData()" class="px-3.5 py-2.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 active:bg-emerald-700 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all">
+              <i data-lucide="database" class="w-4 h-4 text-emerald-200"></i>
+              <span>โหลดข้อมูลตัวอย่างจริง</span>
+            </button>
+            <button onclick="resetToZero()" class="px-3 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/40 border border-rose-400/30 text-rose-200 text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition-all">
+              <i data-lucide="rotate-ccw" class="w-4 h-4 text-rose-300"></i>
+              <span>รีเซ็ตเป็น 0</span>
+            </button>
+            <button onclick="switchTab('analytics')" class="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/15 border border-white/20 text-white text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-1.5 shadow-xs">
+              <i data-lucide="bar-chart-2" class="w-4 h-4 text-amber-400"></i>
+              <span>ดูกราฟสถิติ</span>
+            </button>
+            <button onclick="openModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 text-white text-xs font-semibold shadow-md transition-all flex items-center gap-2">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>เพิ่มบันทึกผลตรวจ</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        <!-- 1. Total Inspected -->
+        <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500">สถานประกอบการที่ตรวจแล้ว</span>
-            <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-100 shadow-2xs">
               <i data-lucide="building-2" class="w-5 h-5"></i>
             </div>
           </div>
-          <div id="kpiTotal" class="text-3xl font-extrabold text-slate-900 font-mono mt-2 tabular-nums">0</div>
-          <div class="text-[11px] text-blue-700 font-semibold mt-2">ครอบคลุม 16 อำเภอสงขลา</div>
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="kpiTotal" class="text-3xl font-extrabold text-slate-900 tabular-nums font-mono">0</span>
+            <span class="text-xs text-slate-500">แห่ง</span>
+          </div>
+          <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+            <span>ครอบคลุม 16 อำเภอ</span>
+            <span class="text-blue-700 font-semibold">อัปเดตเรียลไทม์</span>
+          </div>
         </div>
 
-        <div class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+        <!-- 2. Passed / Normal -->
+        <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-500">ผลการตรวจปกติ / ผ่านเกณฑ์</span>
-            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+            <span class="text-xs font-semibold text-slate-500">ผ่านเกณฑ์มาตรฐานปกติ</span>
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-100 shadow-2xs">
               <i data-lucide="check-circle-2" class="w-5 h-5"></i>
             </div>
           </div>
-          <div id="kpiNormal" class="text-3xl font-extrabold text-emerald-600 font-mono mt-2 tabular-nums">0</div>
-          <div class="text-[11px] text-emerald-700 font-semibold mt-2">ปฏิบัติตามกฎหมาย</div>
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="kpiNormal" class="text-3xl font-extrabold text-emerald-700 tabular-nums font-mono">0</span>
+            <span class="text-xs text-slate-500">แห่ง</span>
+          </div>
+          <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+            <span>ปฏิบัติตามกฎหมาย</span>
+            <span class="text-emerald-700 font-semibold font-mono" id="kpiNormalPercent">0%</span>
+          </div>
         </div>
 
-        <div class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+        <!-- 3. Violations Found -->
+        <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-500">ตรวจพบการกระทำผิด</span>
-            <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center">
+            <span class="text-xs font-semibold text-slate-500">พบการกระทำความผิด</span>
+            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center border border-rose-100 shadow-2xs">
               <i data-lucide="alert-triangle" class="w-5 h-5"></i>
             </div>
           </div>
-          <div id="kpiViolations" class="text-3xl font-extrabold text-rose-600 font-mono mt-2 tabular-nums">0</div>
-          <div class="text-[11px] text-rose-700 font-semibold mt-2">สั่งแก้ไข / ดำเนินคดี</div>
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="kpiViolations" class="text-3xl font-extrabold text-rose-700 tabular-nums font-mono">0</span>
+            <span class="text-xs text-slate-500">แห่ง</span>
+          </div>
+          <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+            <span>มีคำสั่งตักเตือน/ปรับปรุง/ปิด</span>
+            <span class="text-rose-700 font-semibold">มาตรการเข้ม</span>
+          </div>
         </div>
 
-        <div class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+        <!-- 4. Pending / Suspended -->
+        <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-500">ติดตามผล & สั่งปิด 5 ปี</span>
-            <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+            <span class="text-xs font-semibold text-slate-500">ติดตามผล / พักใช้ใบอนุญาต</span>
+            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-100 shadow-2xs">
               <i data-lucide="clock" class="w-5 h-5"></i>
             </div>
           </div>
-          <div id="kpiPending" class="text-3xl font-extrabold text-amber-600 font-mono mt-2 tabular-nums">0</div>
-          <div class="text-[11px] text-amber-800 font-semibold mt-2">คำสั่ง คสช. 22/2558</div>
+          <div class="mt-3 flex items-baseline gap-2">
+            <span id="kpiPending" class="text-3xl font-extrabold text-amber-700 tabular-nums font-mono">0</span>
+            <span class="text-xs text-slate-500">แห่ง</span>
+          </div>
+          <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+            <span>ต้องตรวจซ้ำตามกำหนด</span>
+            <span class="text-amber-700 font-semibold">เฝ้าระวัง</span>
+          </div>
         </div>
       </div>
 
-      <!-- 16 Districts Grid (สงขลาทั้ง 16 อำเภอ) -->
-      <div class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-xs">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3 pb-2 border-b border-slate-100">
+      <!-- Songkhla 16 Districts Interactive Distribution Grid -->
+      <div class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+        <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <i data-lucide="map-pin" class="w-4 h-4 text-blue-700"></i>
-            <h3 class="text-sm font-bold text-slate-900">สถิติรายพื้นที่ 16 อำเภอ จังหวัดสงขลา</h3>
+            <i data-lucide="map-pin" class="w-5 h-5 text-blue-700"></i>
+            <h3 class="font-bold text-slate-900 font-heading text-base">
+              สถิติการตรวจสอบจำแนกตามพื้นที่ 16 อำเภอของจังหวัดสงขลา
+            </h3>
           </div>
-          <span class="text-xs text-slate-500">คลิกที่แต่ละอำเภอเพื่อกรองดูรายการทันที</span>
+          <span class="text-xs text-slate-400 hidden sm:inline">คลิกที่อำเภอเพื่อกรองข้อมูลในตารางทันที</span>
         </div>
-        <div id="districtsGrid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-8 gap-2.5"></div>
+        <div id="districtsGrid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+          <!-- Populated by JavaScript -->
+        </div>
       </div>
     </section>
 
-    <!-- View 2: Records Table & Mobile Cards -->
-    <section id="view-records" class="space-y-4 hidden">
-      <!-- Search & Filters Container -->
+    <!-- ================= TAB 2: RECORDS TABLE ================= -->
+    <section id="view-records" class="hidden space-y-4">
+      
+      <!-- Filter and Search Toolbar -->
       <div class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
         <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          <!-- Search Input -->
           <div class="relative flex-1">
             <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
             <input 
               type="text" 
               id="searchInput" 
               oninput="renderTable()" 
-              placeholder="ค้นหาชื่อร้าน, เลขที่ใบอนุญาต, หรือเจ้าหน้าที่ผู้ตรวจ..." 
-              class="w-full pl-10 pr-12 py-2.5 text-base sm:text-xs bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:outline-none min-h-[44px]" 
+              placeholder="ค้นหาชื่อร้าน, เลขที่ใบอนุญาต, ชื่อผู้จัดการ, หรือเจ้าหน้าที่ผู้ตรวจ..." 
+              class="w-full pl-10 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 min-h-[44px]"
             />
           </div>
+
+          <!-- View Mode Toggle & Export -->
           <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
-            <!-- View Mode Toggle -->
+            <!-- Table vs Cards Toggle -->
             <div class="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs">
-              <button onclick="setStandAloneViewMode('table')" id="vmBtn-table" class="px-3 py-1.5 rounded-lg font-bold bg-white text-blue-700 shadow-2xs min-h-[36px]">ตาราง</button>
-              <button onclick="setStandAloneViewMode('cards')" id="vmBtn-cards" class="px-3 py-1.5 rounded-lg font-bold text-slate-600 min-h-[36px]">การ์ด</button>
+              <button onclick="setStandAloneViewMode('table')" id="vmBtn-table" class="px-3 py-1.5 rounded-lg font-bold bg-white text-blue-700 shadow-2xs min-h-[36px] flex items-center gap-1">
+                <i data-lucide="table" class="w-3.5 h-3.5"></i> ตาราง
+              </button>
+              <button onclick="setStandAloneViewMode('cards')" id="vmBtn-cards" class="px-3 py-1.5 rounded-lg font-bold text-slate-600 min-h-[36px] flex items-center gap-1">
+                <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> การ์ด
+              </button>
             </div>
-            <button onclick="exportCSV()" class="px-3.5 py-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl min-h-[44px]">ส่งออก Excel</button>
-            <button onclick="openModal()" class="px-4 py-2 text-xs font-bold bg-blue-700 hover:bg-blue-600 text-white rounded-xl min-h-[44px]">+ เพิ่มบันทึก</button>
+
+            <!-- Export CSV -->
+            <button onclick="exportCSV()" class="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl border border-slate-200 flex items-center gap-1.5 min-h-[44px]">
+              <i data-lucide="download" class="w-4 h-4 text-slate-600"></i>
+              <span>ส่งออก Excel</span>
+            </button>
           </div>
         </div>
 
-        <!-- Multi-filter Row -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100 text-xs">
+        <!-- Multi-Filter Dropdowns -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-100">
           <div>
-            <label class="block text-slate-600 font-semibold mb-1">อำเภอ (16 อำเภอ):</label>
-            <select id="filterDistrict" onchange="renderTable()" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[44px] text-base sm:text-xs"></select>
-          </div>
-          <div>
-            <label class="block text-slate-600 font-semibold mb-1">ประเภทกิจการ:</label>
-            <select id="filterType" onchange="renderTable()" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[44px] text-base sm:text-xs">
-              <option value="all">ทุกประเภทกิจการ</option>
-              <option value="entertainment">สถานบริการ (พ.ร.บ. 2509)</option>
-              <option value="similar_entertainment">คล้ายสถานบริการ (คสช. 22/2558)</option>
-              <option value="hotel">โรงแรม (พ.ร.บ. 2547)</option>
-              <option value="controlled">กิจการควบคุม</option>
+            <label class="text-[11px] font-semibold text-slate-500 block mb-1">พื้นที่อำเภอ:</label>
+            <select id="filterDistrict" onchange="renderTable()" class="w-full py-2 px-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[38px]">
+              <!-- Options loaded dynamically -->
             </select>
           </div>
           <div>
-            <label class="block text-slate-600 font-semibold mb-1">สถานะผลตรวจ:</label>
-            <select id="filterStatus" onchange="renderTable()" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl min-h-[44px] text-base sm:text-xs">
-              <option value="all">ทุกสถานะผลตรวจ</option>
-              <option value="normal">ปกติ / ผ่านเกณฑ์</option>
-              <option value="violation">พบการกระทำผิด</option>
-              <option value="pending_followup">อยู่ระหว่างติดตามผล</option>
-              <option value="suspended">สั่งปิด 5 ปี (คสช. 22/2558)</option>
+            <label class="text-[11px] font-semibold text-slate-500 block mb-1">ประเภทกิจการ:</label>
+            <select id="filterType" onchange="renderTable()" class="w-full py-2 px-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[38px]">
+              <option value="all">ทุกประเภทสถานประกอบการ</option>
+              <option value="entertainment">สถานบริการ (พ.ร.บ. 2509)</option>
+              <option value="similar_entertainment">ร้านคล้ายสถานบริการ (คสช. 22/2558)</option>
+              <option value="hotel">โรงแรม / ที่พัก (พ.ร.บ. โรงแรม 2547)</option>
+              <option value="controlled">กิจการควบคุม (ของเก่า/ค้าอาวุธปืน)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-500 block mb-1">ผลการตรวจสอบ:</label>
+            <select id="filterStatus" onchange="renderTable()" class="w-full py-2 px-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[38px]">
+              <option value="all">ทุกผลการตรวจสอบ</option>
+              <option value="normal">ปกติ (ผ่านเกณฑ์มาตรฐาน)</option>
+              <option value="violation">พบการกระทำความผิด</option>
+              <option value="pending_followup">อยู่ระหว่างรอตรวจซ้ำ</option>
+              <option value="suspended">สั่งพักใช้ใบอนุญาต / สั่งปิด 5 ปี</option>
             </select>
           </div>
         </div>
       </div>
 
-      <!-- Mode A: Desktop Table View -->
+      <!-- High-Density Desktop Table View -->
       <div id="container-table" class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs border-collapse">
-            <thead class="bg-slate-100/90 text-slate-700 border-b border-slate-200 font-semibold">
-              <tr>
-                <th class="py-3 px-4">ชื่อสถานประกอบการ</th>
-                <th class="py-3 px-3">ประเภท</th>
-                <th class="py-3 px-3">อำเภอ / ตำบล</th>
-                <th class="py-3 px-3 font-mono">วันที่ตรวจ</th>
+            <thead>
+              <tr class="bg-slate-100/90 border-b border-slate-200 text-slate-700 font-semibold uppercase tracking-wider">
+                <th class="py-3 px-4">ชื่อสถานประกอบการ / ทะเบียน</th>
+                <th class="py-3 px-3">ประเภทกิจการ</th>
+                <th class="py-3 px-3">อำเภอ</th>
+                <th class="py-3 px-3">วันที่ตรวจ</th>
                 <th class="py-3 px-3">ผลการตรวจ</th>
-                <th class="py-3 px-3">มาตรการทางกฎหมาย</th>
+                <th class="py-3 px-3">มาตรการที่ดำเนินการ</th>
                 <th class="py-3 px-3">เจ้าหน้าที่ผู้ตรวจ</th>
-                <th class="py-3 px-4 text-right">ดำเนินการ</th>
+                <th class="py-3 px-4 text-right">จัดการ</th>
               </tr>
             </thead>
-            <tbody id="recordsTableBody" class="divide-y divide-slate-100"></tbody>
+            <tbody id="recordsTableBody" class="divide-y divide-slate-100 text-slate-800">
+              <!-- Populated by JavaScript -->
+            </tbody>
           </table>
         </div>
       </div>
 
-      <!-- Mode B: Mobile Touch Card Grid -->
-      <div id="container-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 hidden"></div>
+      <!-- Touch-Friendly Cards View (Mobile & Tablet) -->
+      <div id="container-cards" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <!-- Populated by JavaScript -->
+      </div>
     </section>
 
-    <!-- View 3: Analytics (Chart.js) -->
-    <section id="view-analytics" class="space-y-6 hidden">
+    <!-- ================= TAB 3: ANALYTICS CHARTS ================= -->
+    <section id="view-analytics" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 shadow-xs">
-          <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-            <i data-lucide="pie-chart" class="w-4 h-4 text-blue-700"></i>
-            สัดส่วนตามประเภทกิจการ (Songkhla SecureTrack)
-          </h3>
-          <div class="h-64 flex items-center justify-center relative">
+        <!-- Business Types Distribution Chart -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-slate-900 font-heading text-sm flex items-center gap-2">
+              <i data-lucide="pie-chart" class="w-4 h-4 text-blue-700"></i>
+              สัดส่วนประเภทกิจการที่ตรวจ (Business Types)
+            </h3>
+          </div>
+          <div class="h-64 relative flex items-center justify-center">
             <canvas id="chartDonut"></canvas>
           </div>
         </div>
-        <div class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 shadow-xs">
-          <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-            <i data-lucide="bar-chart-2" class="w-4 h-4 text-blue-700"></i>
-            สถิติตรวจสอบ 16 อำเภอ จังหวัดสงขลา
-          </h3>
-          <div class="h-64 relative">
+
+        <!-- 16 Districts Bar Chart -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-slate-900 font-heading text-sm flex items-center gap-2">
+              <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-700"></i>
+              จำนวนสถานประกอบการจำแนก 16 อำเภอ
+            </h3>
+          </div>
+          <div class="h-64 relative flex items-center justify-center">
             <canvas id="chartBar"></canvas>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- View 4: Executive Report -->
-    <section id="view-report" class="space-y-4 hidden">
-      <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-8 space-y-5 print:border-none print:p-0">
+    <!-- ================= TAB 4: OFFICIAL REPORT (A4) ================= -->
+    <section id="view-report" class="hidden space-y-6">
+      <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex items-center justify-between no-print">
+        <div class="text-xs text-slate-600">
+          แบบสรุปรายงานผลการตรวจสอบประจำเดือน เพื่อเสนอผู้ว่าราชการจังหวัดสงขลา
+        </div>
+        <button onclick="window.print()" class="px-4 py-2 bg-gradient-to-r from-blue-700 to-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5">
+          <i data-lucide="printer" class="w-4 h-4"></i> พิมพ์รายงาน (A4)
+        </button>
+      </div>
+
+      <div class="bg-white border border-slate-200 rounded-2xl p-8 sm:p-12 shadow-xs space-y-6 print:border-none print:shadow-none print:p-0">
         <div class="text-center pb-4 border-b border-slate-300">
-          <div class="w-12 h-12 mx-auto rounded-full bg-blue-900 text-amber-300 flex items-center justify-center font-bold text-lg mb-2">สข</div>
-          <h2 class="text-lg font-bold text-slate-900">รายงานผลการจัดระเบียบสังคมและตรวจสอบสถานบริการ ประจำเดือน</h2>
-          <p class="text-xs text-slate-600">Songkhla SecureTrack · กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา</p>
+          <div class="w-14 h-14 mx-auto mb-2 rounded-full bg-blue-900 text-amber-300 flex items-center justify-center font-bold text-xl">
+            สข
+          </div>
+          <h2 class="text-xl font-bold text-slate-900 font-heading">
+            รายงานผลการจัดระเบียบสังคมและตรวจสอบสถานบริการ โรงแรม และกิจการควบคุม
+          </h2>
+          <p class="text-sm font-medium text-slate-700 mt-1">
+            จังหวัดสงขลา ประจำปีงบประมาณ พ.ศ. 2568 (Songkhla SecureTrack)
+          </p>
+          <div class="mt-2 text-xs text-slate-500">
+            กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา ศาลากลางจังหวัดสงขลา
+          </div>
         </div>
-        <div class="flex justify-end gap-2 no-print">
-          <button onclick="window.print()" class="px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold min-h-[44px]">พิมพ์รายงาน (A4)</button>
+
+        <div id="reportSummaryContent" class="text-xs sm:text-sm text-slate-800 leading-relaxed space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <!-- Populated dynamically -->
         </div>
-        <div id="reportSummaryContent" class="text-xs space-y-3 leading-relaxed text-slate-800"></div>
       </div>
     </section>
 
-    <!-- View 5: Audit Trail -->
-    <section id="view-audit" class="space-y-4 hidden">
-      <div class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-xs">
-        <h3 class="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
-          <i data-lucide="history" class="w-4 h-4 text-blue-700"></i>
-          ประวัติการทำรายการ (Audit Trail & Governance)
-        </h3>
-        <div id="auditLogList" class="divide-y divide-slate-100 text-xs"></div>
+    <!-- ================= TAB 5: AUDIT TRAIL ================= -->
+    <section id="view-audit" class="hidden space-y-4">
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-slate-900 font-heading text-sm flex items-center gap-2">
+            <i data-lucide="history" class="w-4 h-4 text-blue-700"></i>
+            ประวัติการบันทึกและแก้ไขข้อมูล (Audit Trail & Activity Log)
+          </h3>
+          <span class="text-xs text-slate-400">บันทึกลง localStorage อัตโนมัติ</span>
+        </div>
+        <div id="auditLogList" class="divide-y divide-slate-100 text-xs">
+          <!-- Populated by JavaScript -->
+        </div>
       </div>
     </section>
+
   </main>
 
-  <!-- Add/Edit Record Modal -->
-  <div id="recordModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95">
-      <div class="flex items-center justify-between px-5 py-3.5 bg-slate-900 text-white shrink-0">
-        <h3 class="font-bold text-sm sm:text-base" id="modalTitle">บันทึกผลการตรวจใหม่</h3>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-white p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-xl">&times;</button>
+  <!-- MODAL: ADD / EDIT RECORD -->
+  <div id="recordModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[92vh] my-auto">
+      <div class="bg-slate-900 text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
+        <h3 id="modalTitle" class="font-bold text-base font-heading">
+          บันทึกผลการตรวจใหม่ (Songkhla SecureTrack)
+        </h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
-      <form id="recordForm" onsubmit="handleFormSubmit(event)" class="p-4 sm:p-5 space-y-3 overflow-y-auto flex-1 text-xs">
+
+      <form id="recordForm" onsubmit="handleFormSubmit(event)" class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 text-xs">
         <input type="hidden" id="formEditingId" value="" />
+
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">ชื่อสถานประกอบการ *</label>
-          <input type="text" id="formVenueName" required class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-base sm:text-xs min-h-[44px]" placeholder="เช่น ฮาเบอร์ ไนต์คลับ หาดใหญ่" />
+          <label class="block font-bold text-slate-700 mb-1">ชื่อสถานประกอบการ / ร้าน <span class="text-rose-500">*</span></label>
+          <input type="text" id="formVenueName" required placeholder="เช่น ซาวด์บาร์ หาดใหญ่, โรงแรม ด่านนอก การ์เดน" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-500 text-sm" />
         </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">เลขที่ใบอนุญาต / ทะเบียนพาณิชย์ *</label>
-          <input type="text" id="formLicense" required class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-base sm:text-xs min-h-[44px]" placeholder="เช่น สบ.สง. 04/2565 หรือ อยู่ระหว่างขอ" />
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">ประเภทกิจการ</label>
-            <select id="formType" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-base sm:text-xs min-h-[44px]">
+            <label class="block font-bold text-slate-700 mb-1">เลขที่ใบอนุญาต <span class="text-rose-500">*</span></label>
+            <input type="text" id="formLicense" required placeholder="สข 01/2567 หรือ อยู่ระหว่างยื่นขอ" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ประเภทกิจการ <span class="text-rose-500">*</span></label>
+            <select id="formType" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
               <option value="entertainment">สถานบริการ (พ.ร.บ. 2509)</option>
-              <option value="similar_entertainment">คล้ายสถานบริการ (คสช. 22/2558)</option>
-              <option value="hotel">โรงแรม (พ.ร.บ. 2547)</option>
-              <option value="controlled">กิจการควบคุม</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">อำเภอ</label>
-            <select id="formDistrict" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-base sm:text-xs min-h-[44px]"></select>
-          </div>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">ผลการตรวจ</label>
-            <select id="formStatus" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-base sm:text-xs min-h-[44px] font-bold">
-              <option value="normal">ปกติ / ผ่านเกณฑ์</option>
-              <option value="violation">พบการกระทำผิด</option>
-              <option value="pending_followup">อยู่ระหว่างติดตาม</option>
-              <option value="suspended">สั่งปิด 5 ปี</option>
-            </select>
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">มาตรการทางกฎหมาย</label>
-            <select id="formLegal" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-base sm:text-xs min-h-[44px]">
-              <option value="none">ไม่พบความผิด</option>
-              <option value="warned">ว่ากล่าวตักเตือน</option>
-              <option value="rectify_ordered">สั่งแก้ไขปรับปรุง</option>
-              <option value="closed_order_22">สั่งปิด 5 ปี (คสช. 22/2558)</option>
-              <option value="police_case">ส่ง สภ. ดำเนินคดี</option>
+              <option value="similar_entertainment">ร้านคล้ายสถานบริการ (คสช. 22/2558)</option>
+              <option value="hotel">โรงแรม / ที่พัก (พ.ร.บ. โรงแรม 2547)</option>
+              <option value="controlled">กิจการควบคุม (ของเก่า/ค้าอาวุธปืน)</option>
             </select>
           </div>
         </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">เจ้าหน้าที่ผู้ตรวจ</label>
-          <input type="text" id="formOfficer" value="นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-base sm:text-xs min-h-[44px]" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">อำเภอ (จ.สงขลา) <span class="text-rose-500">*</span></label>
+            <select id="formDistrict" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+              <!-- Populated dynamically with 16 Songkhla districts -->
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">ผลการตรวจสอบ <span class="text-rose-500">*</span></label>
+            <select id="formStatus" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+              <option value="normal">ปกติ (ผ่านเกณฑ์มาตรฐาน)</option>
+              <option value="violation">พบการกระทำความผิด</option>
+              <option value="pending_followup">อยู่ระหว่างรอตรวจซ้ำ</option>
+              <option value="suspended">สั่งพักใช้ใบอนุญาต / สั่งปิด</option>
+            </select>
+          </div>
         </div>
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 sticky bottom-0 bg-white">
-          <button type="button" onclick="closeModal()" class="px-4 py-2.5 bg-slate-100 rounded-xl text-slate-700 font-semibold min-h-[44px]">ยกเลิก</button>
-          <button type="submit" class="px-5 py-2.5 bg-blue-700 text-white rounded-xl font-bold hover:bg-blue-600 min-h-[44px]">บันทึกข้อมูล</button>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">มาตรการทางกฎหมาย</label>
+            <select id="formLegal" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+              <option value="none">ไม่มี (ผ่านเกณฑ์ปกติ)</option>
+              <option value="warned">ออกหนังสือตักเตือน</option>
+              <option value="rectify_ordered">สั่งให้ปรับปรุงแก้ไขภายในเวลาที่กำหนด</option>
+              <option value="suspended_temp">มีคำสั่งพักใช้ใบอนุญาตชั่วคราว</option>
+              <option value="closed_order_22">คำสั่งปิด 5 ปี (คำสั่ง คสช. 22/2558)</option>
+              <option value="police_case">จับกุมดำเนินคดีส่งพนักงานสอบสวน</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">เจ้าหน้าที่ผู้รับผิดชอบ</label>
+            <input type="text" id="formOfficer" value="นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-100 min-h-[40px]">
+            ยกเลิก
+          </button>
+          <button type="submit" class="px-5 py-2 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl shadow-md min-h-[40px]">
+            บันทึกข้อมูล
+          </button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Mobile Bottom Dock -->
-  <div class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1 flex items-center justify-around shadow-lg no-print">
-    <button onclick="switchTab('dashboard')" class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] text-blue-700 font-bold">
-      <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
-      <span class="text-[10px] mt-0.5">ภาพรวม</span>
-    </button>
-    <button onclick="switchTab('records')" class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] text-slate-500 hover:text-slate-900">
-      <i data-lucide="database" class="w-5 h-5"></i>
-      <span class="text-[10px] mt-0.5">ทะเบียน</span>
-    </button>
-    <button onclick="openModal()" class="flex flex-col items-center justify-center w-11 h-11 -mt-3 rounded-full bg-blue-700 text-white shadow-md active:scale-95">
-      <i data-lucide="plus" class="w-5 h-5"></i>
-    </button>
-    <button onclick="switchTab('analytics')" class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] text-slate-500 hover:text-slate-900">
-      <i data-lucide="pie-chart" class="w-5 h-5"></i>
-      <span class="text-[10px] mt-0.5">กราฟ</span>
-    </button>
-    <button onclick="switchTab('report')" class="flex flex-col items-center justify-center min-h-[44px] min-w-[56px] text-slate-500 hover:text-slate-900">
-      <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
-      <span class="text-[10px] mt-0.5">รายงาน</span>
-    </button>
-  </div>
-
-  <!-- Bulletproof JavaScript State & Persistence Engine -->
+  <!-- JAVASCRIPT: DATA MANAGEMENT & CORE LOGIC -->
   <script>
-    const STORAGE_KEY = 'songkhla_securetrack_db_v1';
-    const AUDIT_KEY = 'songkhla_securetrack_audit_v1';
+    const STORAGE_KEY = 'songkhla_securetrack_records_v1';
+    const AUDIT_KEY = 'songkhla_securetrack_logs_v1';
 
     const DISTRICTS = [
       'อำเภอเมืองสงขลา', 'อำเภอหาดใหญ่', 'อำเภอสะเดา', 'อำเภอสิงหนคร',
-      'อำเภอจะนะ', 'อำเภอนาทวี', 'อำเภอเทพา', 'อำเภอสะบ้าย้อย',
+      'อำเภอจะนะ', 'อำเภอเทพา', 'อำเภอสะบ้าย้อย', 'อำเภอนาทวี',
       'อำเภอระโนด', 'อำเภอสทิงพระ', 'อำเภอกระแสสินธุ์', 'อำเภอรัตภูมิ',
-      'อำเภอบางกล่ำ', 'อำเภอควนเนียง', 'อำเภอคลองหอยโข่ง', 'อำเภอนาหม่อม'
+      'อำเภอบางกล่ำ', 'อำเภอควนเนียง', 'อำเภอนาหม่อม', 'อำเภอคลองหอยโข่ง'
     ];
 
-    const DEFAULT_RECORDS = [
-      { id: 'REC-001', venueName: 'ฮาเบอร์ ไนต์คลับ หาดใหญ่ (Harbour Club)', licenseNumber: 'สบ.สง. 04/2565', businessType: 'entertainment', district: 'อำเภอหาดใหญ่', subDistrict: 'หาดใหญ่', lastInspectionDate: '2026-10-18', inspectionStatus: 'violation', legalAction: 'police_case', officerName: 'นายมงคล ศักดิ์เจริญ' },
-      { id: 'REC-002', venueName: 'โรงแรม แกรนด์ พาราดิโซ ด่านนอก', licenseNumber: 'รร.สง. 18/2566', businessType: 'hotel', district: 'อำเภอสะเดา', subDistrict: 'สำนักขาม', lastInspectionDate: '2026-10-16', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายธีรภัทร ชูจิตร' },
-      { id: 'REC-003', venueName: 'ร้านนั่งชิลล์ บาร์แอนด์บิสโทร ชลาทัศน์', licenseNumber: 'อยู่อยู่ระหว่างขออนุญาต', businessType: 'similar_entertainment', district: 'อำเภอเมืองสงขลา', subDistrict: 'บ่อยาง', lastInspectionDate: '2026-10-14', inspectionStatus: 'pending_followup', legalAction: 'rectify_ordered', officerName: 'นายอนุชา พงษ์สถิตย์' },
-      { id: 'REC-004', venueName: 'ซาวด์บาร์ หาดใหญ่ (Sound Bar)', licenseNumber: 'สบ.สง. 19/2566', businessType: 'entertainment', district: 'อำเภอหาดใหญ่', subDistrict: 'หาดใหญ่', lastInspectionDate: '2026-10-11', inspectionStatus: 'suspended', legalAction: 'closed_order_22', officerName: 'นายมงคล ศักดิ์เจริญ' },
-      { id: 'REC-005', venueName: 'ร้านทรัพย์อนันต์ รีไซเคิล (รับซื้อของเก่า)', licenseNumber: 'คก.สข. 31/2564', businessType: 'controlled', district: 'อำเภอสิงหนคร', subDistrict: 'หัวเขา', lastInspectionDate: '2026-10-09', inspectionStatus: 'normal', legalAction: 'none', officerName: 'ร.ต.ท. เกรียงศักดิ์ สมบูรณ์' },
-      { id: 'REC-006', venueName: 'ร้านสองเล คาราโอเกะ สิงหนคร', licenseNumber: 'ไม่มีใบอนุญาต', businessType: 'similar_entertainment', district: 'อำเภอสิงหนคร', subDistrict: 'สทิงหม้อ', lastInspectionDate: '2026-10-08', inspectionStatus: 'violation', legalAction: 'warned', officerName: 'นายอนุชา พงษ์สถิตย์' },
-      { id: 'REC-007', venueName: 'โรงแรม คริสตัล หาดใหญ่ (Crystal Hotel)', licenseNumber: 'รร.สง. 03/2563', businessType: 'hotel', district: 'อำเภอหาดใหญ่', subDistrict: 'หาดใหญ่', lastInspectionDate: '2026-10-06', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายมงคล ศักดิ์เจริญ' },
-      { id: 'REC-008', venueName: 'ร้านอาหารและดนตรี ริมเล สะกอม', licenseNumber: 'สบ.รอ. 05/2566', businessType: 'similar_entertainment', district: 'อำเภอเทพา', subDistrict: 'สะกอม', lastInspectionDate: '2026-10-02', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายสุทิน มณีรัตน์' }
+    const REAL_MOCK_DATA = [
+      {
+        id: 'REC-2568-101',
+        venueName: 'เดอะ ซาวด์บาร์ หาดใหญ่ (The Sound Bar)',
+        licenseNumber: 'สข 04/2566',
+        businessType: 'similar_entertainment',
+        district: 'อำเภอหาดใหญ่',
+        subDistrict: 'หาดใหญ่',
+        lastInspectionDate: '2026-10-18',
+        inspectionStatus: 'suspended',
+        legalAction: 'closed_order_22',
+        officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)'
+      },
+      {
+        id: 'REC-2568-102',
+        venueName: 'โรงแรม แกรนด์ พาราดิโซ ด่านนอก',
+        licenseNumber: 'ร.ร. 12/2565',
+        businessType: 'hotel',
+        district: 'อำเภอสะเดา',
+        subDistrict: 'สำนักขาม',
+        lastInspectionDate: '2026-10-15',
+        inspectionStatus: 'normal',
+        legalAction: 'none',
+        officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)'
+      },
+      {
+        id: 'REC-2568-103',
+        venueName: 'ร้านนั่งชิลล์ บาร์แอนด์บิสโทร ชลาทัศน์',
+        licenseNumber: 'อยู่ระหว่างยื่นขอ',
+        businessType: 'similar_entertainment',
+        district: 'อำเภอเมืองสงขลา',
+        subDistrict: 'บ่อยาง',
+        lastInspectionDate: '2026-10-14',
+        inspectionStatus: 'violation',
+        legalAction: 'rectify_ordered',
+        officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)'
+      },
+      {
+        id: 'REC-2568-104',
+        venueName: 'ร้านทรัพย์อนันต์ รีไซเคิล (รับซื้อของเก่า)',
+        licenseNumber: 'ข.ก. 09/2567',
+        businessType: 'controlled',
+        district: 'อำเภอสิงหนคร',
+        subDistrict: 'สทิงหม้อ',
+        lastInspectionDate: '2026-10-12',
+        inspectionStatus: 'normal',
+        legalAction: 'none',
+        officerName: 'ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)'
+      },
+      {
+        id: 'REC-2568-105',
+        venueName: 'จะนะ ริเวอร์ไซด์ รีสอร์ท',
+        licenseNumber: 'ร.ร. 08/2566',
+        businessType: 'hotel',
+        district: 'อำเภอจะนะ',
+        subDistrict: 'บ้านนา',
+        lastInspectionDate: '2026-10-10',
+        inspectionStatus: 'normal',
+        legalAction: 'none',
+        officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)'
+      },
+      {
+        id: 'REC-2568-106',
+        venueName: 'รัตภูมิ การค้า & คลังวัสดุ',
+        licenseNumber: 'อส 15/2567',
+        businessType: 'controlled',
+        district: 'อำเภอรัตภูมิ',
+        subDistrict: 'กำแพงเพชร',
+        lastInspectionDate: '2026-10-08',
+        inspectionStatus: 'pending_followup',
+        legalAction: 'warned',
+        officerName: 'ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)'
+      },
+      {
+        id: 'REC-2568-107',
+        venueName: 'สะบ้าย้อย เกสต์เฮาส์',
+        licenseNumber: 'ร.ร. 03/2567',
+        businessType: 'hotel',
+        district: 'อำเภอสะบ้าย้อย',
+        subDistrict: 'สะบ้าย้อย',
+        lastInspectionDate: '2026-10-06',
+        inspectionStatus: 'normal',
+        legalAction: 'none',
+        officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)'
+      },
+      {
+        id: 'REC-2568-108',
+        venueName: 'ระโนด ซีฟู้ด แอนด์ เลาจน์',
+        licenseNumber: 'สข 09/2566',
+        businessType: 'similar_entertainment',
+        district: 'อำเภอระโนด',
+        subDistrict: 'ระโนด',
+        lastInspectionDate: '2026-10-05',
+        inspectionStatus: 'violation',
+        legalAction: 'police_case',
+        officerName: 'ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)'
+      },
+      {
+        id: 'REC-2568-109',
+        venueName: 'คลับ 99 เอนเตอร์เทนเมนต์ หาดใหญ่',
+        licenseNumber: 'สข 01/2566',
+        businessType: 'entertainment',
+        district: 'อำเภอหาดใหญ่',
+        subDistrict: 'คอหงส์',
+        lastInspectionDate: '2026-10-04',
+        inspectionStatus: 'normal',
+        legalAction: 'none',
+        officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)'
+      },
+      {
+        id: 'REC-2568-110',
+        venueName: 'นาทวี บิลเลียด & คาเฟ่',
+        licenseNumber: 'สข 18/2566',
+        businessType: 'similar_entertainment',
+        district: 'อำเภอนาทวี',
+        subDistrict: 'นาทวี',
+        lastInspectionDate: '2026-10-02',
+        inspectionStatus: 'normal',
+        legalAction: 'none',
+        officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)'
+      },
+      {
+        id: 'REC-2568-111',
+        venueName: 'เทพา บีช รีสอร์ท',
+        licenseNumber: 'ร.ร. 05/2565',
+        businessType: 'hotel',
+        district: 'อำเภอเทพา',
+        subDistrict: 'ปากบาง',
+        lastInspectionDate: '2026-09-28',
+        inspectionStatus: 'normal',
+        legalAction: 'none',
+        officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)'
+      },
+      {
+        id: 'REC-2568-112',
+        venueName: 'สทิงพระ ไนท์ สเตชัน',
+        licenseNumber: 'สข 11/2567',
+        businessType: 'similar_entertainment',
+        district: 'อำเภอสทิงพระ',
+        subDistrict: 'จะทิ้งพระ',
+        lastInspectionDate: '2026-09-25',
+        inspectionStatus: 'pending_followup',
+        legalAction: 'warned',
+        officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)'
+      }
     ];
 
-    const DEFAULT_AUDIT = [
-      { id: 'LOG-1', time: '18 ต.ค. 2568 22:30 น.', officer: 'นายมงคล ศักดิ์เจริญ', action: 'ส่งดำเนินคดี สภ.: ฮาเบอร์ ไนต์คลับ หาดใหญ่' },
-      { id: 'LOG-2', time: '13 ต.ค. 2568 10:30 น.', officer: 'นายมงคล ศักดิ์เจริญ', action: 'คำสั่งปิด 5 ปี (คสช. 22/2558): ซาวด์บาร์ หาดใหญ่' }
-    ];
-
-    // Reactive State
     let records = [];
     let auditLogs = [];
-    let currentViewMode = window.innerWidth < 768 ? 'cards' : 'table';
+    let currentViewMode = 'table';
 
-    // 1. Load Data from localStorage (Defensive & Robust)
+    // 1. DATA PERSISTENCE & INITIALIZATION LOGIC
     function loadData() {
       try {
-        const savedRecords = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('songkhla_securetrack_records_v1');
-        if (savedRecords) {
-          const parsed = JSON.parse(savedRecords);
-          if (Array.isArray(parsed) && parsed.length > 0) {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw !== null) {
+          // Key exists in localStorage (could be [] if user reset to 0, or populated array)
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
             records = parsed;
           } else {
-            records = [...DEFAULT_RECORDS];
+            records = [...REAL_MOCK_DATA];
+            saveRecords();
           }
         } else {
-          records = [...DEFAULT_RECORDS];
+          // Very first visit ever: initialize with real mock data
+          records = [...REAL_MOCK_DATA];
           saveRecords();
         }
 
-        const savedAudit = localStorage.getItem(AUDIT_KEY);
-        if (savedAudit) {
-          const parsedAudit = JSON.parse(savedAudit);
-          if (Array.isArray(parsedAudit) && parsedAudit.length > 0) {
+        const rawAudit = localStorage.getItem(AUDIT_KEY);
+        if (rawAudit !== null) {
+          const parsedAudit = JSON.parse(rawAudit);
+          if (Array.isArray(parsedAudit)) {
             auditLogs = parsedAudit;
           } else {
-            auditLogs = [...DEFAULT_AUDIT];
+            initDefaultAudit();
           }
         } else {
-          auditLogs = [...DEFAULT_AUDIT];
-          saveAudit();
+          initDefaultAudit();
         }
       } catch (err) {
-        console.error('Data load error, falling back to defaults:', err);
-        records = [...DEFAULT_RECORDS];
-        auditLogs = [...DEFAULT_AUDIT];
+        console.error('Error loading data from localStorage:', err);
+        records = [...REAL_MOCK_DATA];
       }
     }
 
-    // 2. Persist to localStorage
+    function initDefaultAudit() {
+      auditLogs = [
+        { id: 'LOG-1', time: new Date().toLocaleString('th-TH'), officer: 'นายสมชาย มั่นคง (ปลัดอำเภอ)', action: 'ระบบเริ่มต้นฐานข้อมูล Songkhla SecureTrack (16 อำเภอ)' }
+      ];
+      saveAudit();
+    }
+
     function saveRecords() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
       } catch (e) {
-        console.error('Failed to save to localStorage:', e);
+        console.error('Failed to save records to localStorage:', e);
       }
     }
 
@@ -486,111 +769,109 @@
       try {
         localStorage.setItem(AUDIT_KEY, JSON.stringify(auditLogs));
       } catch (e) {
-        console.error('Failed to save audit log:', e);
+        console.error('Failed to save audit logs:', e);
       }
     }
 
-    // 3. Reset to default sample data
-    function resetToDefaultData() {
-      if (confirm('คุณต้องการรีเซ็ตข้อมูลเป็นชุดตัวอย่างเริ่มต้นของ Songkhla SecureTrack หรือไม่?\n\n*คำเตือน: ข้อมูลที่ท่านบันทึกไว้จะถูกย้อนกลับ')) {
-        records = [...DEFAULT_RECORDS];
-        auditLogs = [...DEFAULT_AUDIT];
+    // 2. CRUCIAL REQUIREMENTS: RESET TO 0 & LOAD REAL DATA
+    function resetToZero() {
+      const confirmReset = confirm(
+        'ยืนยันการ "รีเซ็ตข้อมูลเป็น 0 (Reset Data)" หรือไม่?\n\n*ข้อควรทราบ: ข้อมูลสถานประกอบการทั้งหมดจะถูกล้างเป็น 0 แห่ง และสถิติทั้งหมดจะกลายเป็น 0 โดยบันทึกลง localStorage ทันที (ท่านสามารถกดปุ่ม "โหลดข้อมูลตัวอย่างจริง" เพื่อดึงข้อมูลกลับมาได้ทุกเมื่อ)'
+      );
+      if (confirmReset) {
+        records = [];
         saveRecords();
+
+        auditLogs.unshift({
+          id: 'LOG-' + Date.now(),
+          time: new Date().toLocaleString('th-TH'),
+          officer: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
+          action: 'รีเซ็ตข้อมูลระบบเป็น 0 (Reset Data) สำเร็จ'
+        });
         saveAudit();
-        renderKPIs();
-        renderDistrictsGrid();
-        renderTable();
-        renderAudit();
-        renderReport();
-        alert('รีเซ็ตข้อมูลสำเร็จ');
+
+        updateAllUI();
+        alert('รีเซ็ตข้อมูลสถานประกอบการและสถิติทั้งหมดเป็น 0 แห่งเรียบร้อยแล้ว');
       }
     }
 
-    // Live Thai Clock
-    setInterval(() => {
-      const el = document.getElementById('liveClock');
-      if (el) el.innerText = new Date().toLocaleString('th-TH');
-    }, 1000);
+    function loadRealData() {
+      records = JSON.parse(JSON.stringify(REAL_MOCK_DATA));
+      saveRecords();
 
-    // Initial Setup
-    function init() {
-      loadData();
+      auditLogs.unshift({
+        id: 'LOG-' + Date.now(),
+        time: new Date().toLocaleString('th-TH'),
+        officer: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
+        action: 'โหลดข้อมูลตัวอย่างจริงของ 16 อำเภอในจังหวัดสงขลา (12 แห่ง)'
+      });
+      saveAudit();
 
-      const filterDist = document.getElementById('filterDistrict');
-      const formDist = document.getElementById('formDistrict');
-      if (filterDist) {
-        filterDist.innerHTML = '<option value="all">ทุกอำเภอในสงขลา (16 อำเภอ)</option>';
-        DISTRICTS.forEach(d => {
-          filterDist.innerHTML += `<option value="${d}">${d}</option>`;
-        });
-      }
-      if (formDist) {
-        formDist.innerHTML = '';
-        DISTRICTS.forEach(d => {
-          formDist.innerHTML += `<option value="${d}">${d}</option>`;
-        });
-      }
+      updateAllUI();
+      alert('โหลดข้อมูลตัวอย่างจริงของ 16 อำเภอในสงขลา (12 แห่ง) เรียบร้อยแล้ว ข้อมูลบันทึกลง localStorage ทันที');
+    }
 
-      setStandAloneViewMode(currentViewMode);
+    // 3. UI RENDERING FUNCTIONS
+    function updateAllUI() {
       renderKPIs();
       renderDistrictsGrid();
       renderTable();
       renderAudit();
       renderReport();
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function setStandAloneViewMode(mode) {
-      currentViewMode = mode;
-      const cTable = document.getElementById('container-table');
-      const cCards = document.getElementById('container-cards');
-      const bTable = document.getElementById('vmBtn-table');
-      const bCards = document.getElementById('vmBtn-cards');
-
-      if (!cTable || !cCards) return;
-
-      if (mode === 'table') {
-        cTable.classList.remove('hidden');
-        cCards.classList.add('hidden');
-        if (bTable) bTable.className = 'px-3 py-1.5 rounded-lg font-bold bg-white text-blue-700 shadow-2xs min-h-[36px]';
-        if (bCards) bCards.className = 'px-3 py-1.5 rounded-lg font-bold text-slate-600 min-h-[36px]';
-      } else {
-        cTable.classList.add('hidden');
-        cCards.classList.remove('hidden');
-        if (bCards) bCards.className = 'px-3 py-1.5 rounded-lg font-bold bg-white text-blue-700 shadow-2xs min-h-[36px]';
-        if (bTable) bTable.className = 'px-3 py-1.5 rounded-lg font-bold text-slate-600 min-h-[36px]';
+      if (typeof initCharts === 'function') {
+        initCharts();
       }
     }
 
     function renderKPIs() {
+      const total = records.length;
+      const normal = records.filter(r => r.inspectionStatus === 'normal').length;
+      const violations = records.filter(r => r.inspectionStatus === 'violation' || r.inspectionStatus === 'suspended').length;
+      const pending = records.filter(r => r.inspectionStatus === 'pending_followup' || r.inspectionStatus === 'suspended').length;
+
       const elTotal = document.getElementById('kpiTotal');
       const elNormal = document.getElementById('kpiNormal');
       const elViolations = document.getElementById('kpiViolations');
       const elPending = document.getElementById('kpiPending');
+      const elPercent = document.getElementById('kpiNormalPercent');
       const elBadge = document.getElementById('recordCountBadge');
+      const elZeroBanner = document.getElementById('zeroDataBanner');
 
-      if (elTotal) elTotal.innerText = records.length;
-      if (elNormal) elNormal.innerText = records.filter(r => r.inspectionStatus === 'normal').length;
-      if (elViolations) elViolations.innerText = records.filter(r => r.inspectionStatus === 'violation').length;
-      if (elPending) elPending.innerText = records.filter(r => r.inspectionStatus === 'pending_followup' || r.inspectionStatus === 'suspended').length;
-      if (elBadge) elBadge.innerText = records.length;
+      if (elTotal) elTotal.innerText = total;
+      if (elNormal) elNormal.innerText = normal;
+      if (elViolations) elViolations.innerText = violations;
+      if (elPending) elPending.innerText = pending;
+      if (elBadge) elBadge.innerText = total;
+
+      if (elPercent) {
+        elPercent.innerText = total > 0 ? Math.round((normal / total) * 100) + '%' : '0%';
+      }
+
+      if (elZeroBanner) {
+        if (total === 0) {
+          elZeroBanner.classList.remove('hidden');
+        } else {
+          elZeroBanner.classList.add('hidden');
+        }
+      }
     }
 
     function renderDistrictsGrid() {
       const grid = document.getElementById('districtsGrid');
       if (!grid) return;
       grid.innerHTML = '';
+
       DISTRICTS.forEach(d => {
         const distRecs = records.filter(r => r.district === d);
         const count = distRecs.length;
         const viols = distRecs.filter(r => r.inspectionStatus === 'violation' || r.inspectionStatus === 'suspended').length;
 
         grid.innerHTML += `
-          <button onclick="filterByDistrict('${d}')" class="p-2.5 sm:p-3 bg-slate-50 border border-slate-200/80 rounded-xl text-left hover:border-blue-500 hover:bg-blue-50/50 transition-all min-h-[72px] flex flex-col justify-between">
-            <div class="font-bold text-xs text-slate-800 line-clamp-1">${d.replace('อำเภอ', 'อ.')}</div>
+          <button onclick="filterByDistrict('${d}')" class="p-2 sm:p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-left hover:border-blue-500 hover:bg-blue-50/50 transition-all flex flex-col justify-between min-h-[64px]">
+            <div class="font-bold text-[11px] text-slate-800 line-clamp-1">${d.replace('อำเภอ', 'อ.')}</div>
             <div class="flex items-center justify-between text-xs mt-1">
-              <span class="text-blue-700 font-mono font-bold">${count} แห่ง</span>
-              ${viols > 0 ? `<span class="text-[10px] bg-rose-100 text-rose-800 font-bold px-1 rounded font-mono">ผิด ${viols}</span>` : ''}
+              <span class="text-blue-700 font-mono font-bold text-[11px]">${count} แห่ง</span>
+              ${viols > 0 ? `<span class="text-[9px] bg-rose-100 text-rose-800 font-bold px-1 rounded font-mono">ผิด ${viols}</span>` : ''}
             </div>
           </button>
         `;
@@ -598,50 +879,70 @@
     }
 
     function renderTable() {
-      const searchEl = document.getElementById('searchInput');
-      const distEl = document.getElementById('filterDistrict');
-      const typeEl = document.getElementById('filterType');
-      const statusEl = document.getElementById('filterStatus');
-
-      const search = searchEl ? searchEl.value.toLowerCase().trim() : '';
-      const dist = distEl ? distEl.value : 'all';
-      const type = typeEl ? typeEl.value : 'all';
-      const status = statusEl ? statusEl.value : 'all';
+      const search = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+      const dist = document.getElementById('filterDistrict')?.value || 'all';
+      const type = document.getElementById('filterType')?.value || 'all';
+      const status = document.getElementById('filterStatus')?.value || 'all';
 
       const filtered = records.filter(r => {
         if (dist !== 'all' && r.district !== dist) return false;
-        if (type !== 'all' && r.businessType !== type && !r.businessType.includes(type)) return false;
+        if (type !== 'all' && r.businessType !== type) return false;
         if (status !== 'all' && r.inspectionStatus !== status) return false;
         if (search) {
-          const matchName = r.venueName.toLowerCase().includes(search);
-          const matchLicense = r.licenseNumber.toLowerCase().includes(search);
-          const matchOfficer = r.officerName ? r.officerName.toLowerCase().includes(search) : false;
+          const matchName = (r.venueName || '').toLowerCase().includes(search);
+          const matchLicense = (r.licenseNumber || '').toLowerCase().includes(search);
+          const matchOfficer = (r.officerName || '').toLowerCase().includes(search);
           if (!matchName && !matchLicense && !matchOfficer) return false;
         }
         return true;
       });
 
-      // Render Table
+      // 1. Render High-Density Desktop Table Body
       const tbody = document.getElementById('recordsTableBody');
       if (tbody) {
         tbody.innerHTML = '';
         if (filtered.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-slate-400">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</td></tr>`;
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" class="text-center py-10 text-slate-400">
+                <div class="text-sm font-bold text-slate-600">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</div>
+                <div class="text-xs text-slate-400 mt-1">${records.length === 0 ? 'ขณะนี้ฐานข้อมูลมี 0 รายการ (ท่านสามารถกด "โหลดข้อมูลตัวอย่างจริง" หรือ "เพิ่มผลตรวจใหม่")' : 'โปรดลองเปลี่ยนคำค้นหาหรือตัวกรอง'}</div>
+              </td>
+            </tr>
+          `;
         } else {
           filtered.forEach(r => {
             const isNorm = r.inspectionStatus === 'normal';
+            let statusPill = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">ปกติ</span>`;
+            if (r.inspectionStatus === 'violation') {
+              statusPill = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800">พบการกระทำผิด</span>`;
+            } else if (r.inspectionStatus === 'pending_followup') {
+              statusPill = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">รอตรวจซ้ำ</span>`;
+            } else if (r.inspectionStatus === 'suspended') {
+              statusPill = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800">สั่งพัก/สั่งปิด</span>`;
+            }
+
+            let typeLabel = r.businessType;
+            if (r.businessType === 'entertainment') typeLabel = 'สถานบริการ';
+            else if (r.businessType === 'similar_entertainment') typeLabel = 'คล้ายสถานบริการ';
+            else if (r.businessType === 'hotel') typeLabel = 'โรงแรม / ที่พัก';
+            else if (r.businessType === 'controlled') typeLabel = 'กิจการควบคุม';
+
             tbody.innerHTML += `
-              <tr class="hover:bg-blue-50/40">
-                <td class="py-3 px-4 font-bold text-slate-900">${r.venueName}<div class="text-[10px] text-slate-400 font-mono">${r.licenseNumber}</div></td>
-                <td class="py-3 px-3">${r.businessType}</td>
+              <tr class="hover:bg-blue-50/40 transition-colors">
+                <td class="py-3 px-4 font-bold text-slate-900">
+                  <div>${r.venueName}</div>
+                  <div class="text-[10px] text-slate-400 font-mono">${r.licenseNumber}</div>
+                </td>
+                <td class="py-3 px-3 text-slate-600">${typeLabel}</td>
                 <td class="py-3 px-3">${r.district}</td>
                 <td class="py-3 px-3 font-mono">${r.lastInspectionDate}</td>
-                <td class="py-3 px-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${isNorm ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${r.inspectionStatus}</span></td>
-                <td class="py-3 px-3">${r.legalAction}</td>
-                <td class="py-3 px-3">${r.officerName}</td>
-                <td class="py-3 px-4 text-right">
-                  <button onclick="editRecord('${r.id}')" class="text-blue-700 hover:underline font-bold px-2">แก้ไข</button>
-                  <button onclick="deleteRecord('${r.id}')" class="text-rose-600 hover:underline font-bold px-2">ลบ</button>
+                <td class="py-3 px-3">${statusPill}</td>
+                <td class="py-3 px-3 text-slate-600">${r.legalAction}</td>
+                <td class="py-3 px-3 text-slate-600">${r.officerName}</td>
+                <td class="py-3 px-4 text-right whitespace-nowrap">
+                  <button onclick="editRecord('${r.id}')" class="px-2 py-1 text-blue-700 hover:text-blue-900 font-bold hover:bg-blue-50 rounded">แก้ไข</button>
+                  <button onclick="deleteRecord('${r.id}')" class="px-2 py-1 text-rose-600 hover:text-rose-800 font-bold hover:bg-rose-50 rounded">ลบ</button>
                 </td>
               </tr>
             `;
@@ -649,7 +950,7 @@
         }
       }
 
-      // Render Cards
+      // 2. Render Mobile Cards View
       const cCards = document.getElementById('container-cards');
       if (cCards) {
         cCards.innerHTML = '';
@@ -665,18 +966,20 @@
                     <h4 class="font-bold text-slate-900 text-sm">${r.venueName}</h4>
                     <div class="text-[11px] text-slate-400 font-mono">${r.licenseNumber}</div>
                   </div>
-                  <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${isNorm ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${r.inspectionStatus}</span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isNorm ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                    ${r.inspectionStatus}
+                  </span>
                 </div>
                 <div class="text-xs text-slate-600 space-y-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                  <div><strong>พื้นที่:</strong> ${r.district}</div>
+                  <div><strong>อำเภอ:</strong> ${r.district}</div>
                   <div><strong>ประเภท:</strong> ${r.businessType}</div>
-                  <div><strong>ตรวจล่าสุด:</strong> ${r.lastInspectionDate}</div>
+                  <div><strong>วันที่ตรวจ:</strong> ${r.lastInspectionDate}</div>
                   <div><strong>มาตรการ:</strong> ${r.legalAction}</div>
                   <div><strong>ผู้ตรวจ:</strong> ${r.officerName}</div>
                 </div>
                 <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                  <button onclick="editRecord('${r.id}')" class="px-3.5 py-2 bg-blue-50 text-blue-700 font-bold rounded-xl text-xs min-h-[44px]">แก้ไข</button>
-                  <button onclick="deleteRecord('${r.id}')" class="px-3.5 py-2 bg-rose-50 text-rose-700 font-bold rounded-xl text-xs min-h-[44px]">ลบรายการ</button>
+                  <button onclick="editRecord('${r.id}')" class="px-3.5 py-1.5 bg-blue-50 text-blue-700 font-bold rounded-xl text-xs min-h-[38px]">แก้ไข</button>
+                  <button onclick="deleteRecord('${r.id}')" class="px-3.5 py-1.5 bg-rose-50 text-rose-700 font-bold rounded-xl text-xs min-h-[38px]">ลบรายการ</button>
                 </div>
               </div>
             `;
@@ -689,7 +992,11 @@
       const list = document.getElementById('auditLogList');
       if (!list) return;
       list.innerHTML = '';
-      auditLogs.forEach(l => {
+      if (auditLogs.length === 0) {
+        list.innerHTML = '<div class="py-4 text-center text-slate-400">ยังไม่มีประวัติการทำรายการ</div>';
+        return;
+      }
+      auditLogs.slice(0, 30).forEach(l => {
         list.innerHTML += `
           <div class="py-2.5 flex items-center justify-between">
             <div>
@@ -709,34 +1016,12 @@
       const violCount = records.filter(r => r.inspectionStatus === 'violation' || r.inspectionStatus === 'suspended').length;
       el.innerHTML = `
         <p class="indent-6 text-justify">
-          กราบเรียน ผู้ว่าราชการจังหวัดสงขลา (ผ่าน ปลัดจังหวัดสงขลา): กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา ขอรายงานสรุปผลการจัดระเบียบสังคมและตรวจสอบสถานบริการ โรงแรม และกิจการควบคุม ประจำเดือน ในพื้นที่ 16 อำเภอ โดยได้เข้าตรวจสอบสถานประกอบการรวมทั้งสิ้น <strong>${records.length}</strong> แห่ง ผลการตรวจผ่านเกณฑ์มาตรฐานถูกต้อง <strong>${normalCount}</strong> แห่ง และตรวจพบการกระทำผิดหรือไม่ปฏิบัติตามมาตรฐาน <strong>${violCount}</strong> แห่ง โดยชุดปฏิบัติการพิเศษฝ่ายปกครองได้ดำเนินการตามอำนาจหน้าที่และข้อสั่งการของ คสช. ที่ 22/2558 เรียบร้อยแล้ว
+          กราบเรียน ผู้ว่าราชการจังหวัดสงขลา (ผ่าน ปลัดจังหวัดสงขลา): กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา ขอรายงานสรุปผลการจัดระเบียบสังคมและตรวจสอบสถานบริการ โรงแรม และกิจการควบคุม ประจำเดือน ในพื้นที่ 16 อำเภอของจังหวัดสงขลา โดยได้เข้าตรวจสอบสถานประกอบการรวมทั้งสิ้น <strong>${records.length}</strong> แห่ง ผลการตรวจผ่านเกณฑ์มาตรฐานถูกต้อง <strong>${normalCount}</strong> แห่ง และตรวจพบการกระทำผิดหรือไม่ปฏิบัติตามมาตรฐาน <strong>${violCount}</strong> แห่ง โดยชุดปฏิบัติการพิเศษฝ่ายปกครองได้ดำเนินการตามอำนาจหน้าที่และข้อสั่งการของ คสช. ที่ 22/2558 เรียบร้อยแล้ว
         </p>
       `;
     }
 
-    function switchTab(tabId) {
-      ['dashboard', 'records', 'analytics', 'report', 'audit'].forEach(t => {
-        const v = document.getElementById('view-' + t);
-        const b = document.getElementById('tabBtn-' + t);
-        if (v) v.classList.add('hidden');
-        if (b) b.className = 'px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap';
-      });
-      const targetV = document.getElementById('view-' + tabId);
-      const targetB = document.getElementById('tabBtn-' + tabId);
-      if (targetV) targetV.classList.remove('hidden');
-      if (targetB) targetB.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-700 text-white transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap shadow-xs';
-
-      if (tabId === 'analytics') initCharts();
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function filterByDistrict(d) {
-      const el = document.getElementById('filterDistrict');
-      if (el) el.value = d;
-      switchTab('records');
-      renderTable();
-    }
-
+    // 4. CRUD OPERATIONS (ADD, EDIT, DELETE)
     function openModal(editId = '') {
       const modal = document.getElementById('recordModal');
       const titleEl = document.getElementById('modalTitle');
@@ -775,7 +1060,26 @@
       openModal(id);
     }
 
-    // 4. Data Integrity & Append-Only Logic (No Data Loss)
+    function deleteRecord(id) {
+      const target = records.find(r => r.id === id);
+      if (confirm(`ยืนยันการลบรายการของ "${target ? target.venueName : id}" หรือไม่?`)) {
+        records = records.filter(r => r.id !== id);
+        saveRecords();
+
+        if (target) {
+          auditLogs.unshift({
+            id: 'LOG-' + Date.now(),
+            time: new Date().toLocaleString('th-TH'),
+            officer: 'เจ้าหน้าที่กลุ่มงานความมั่นคง',
+            action: 'ลบรายการ: ' + target.venueName
+          });
+          saveAudit();
+        }
+
+        updateAllUI();
+      }
+    }
+
     function handleFormSubmit(e) {
       e.preventDefault();
       const editId = document.getElementById('formEditingId').value;
@@ -793,7 +1097,7 @@
       }
 
       if (editId) {
-        // Edit mode: Update only that specific record's fields (Edit Isolation)
+        // Edit Mode: Update only that specific record
         records = records.map(r => {
           if (r.id === editId) {
             return {
@@ -817,7 +1121,7 @@
           action: 'แก้ไขข้อมูล: ' + vName
         });
       } else {
-        // Append mode: Prepend new item to existing dataset array (Append-Only Logic)
+        // Add Mode: Append new item
         const newRec = {
           id: 'REC-' + Math.floor(100 + Math.random() * 900),
           venueName: vName,
@@ -843,32 +1147,53 @@
       saveRecords();
       saveAudit();
       closeModal();
-      renderKPIs();
-      renderDistrictsGrid();
-      renderTable();
-      renderAudit();
-      renderReport();
+      updateAllUI();
     }
 
-    function deleteRecord(id) {
-      const target = records.find(r => r.id === id);
-      if (confirm(`ยืนยันการลบรายการของ "${target ? target.venueName : id}" หรือไม่?`)) {
-        records = records.filter(r => r.id !== id);
-        if (target) {
-          auditLogs.unshift({
-            id: 'LOG-' + Date.now(),
-            time: new Date().toLocaleString('th-TH'),
-            officer: 'เจ้าหน้าที่กลุ่มงานความมั่นคง',
-            action: 'ลบรายการ: ' + target.venueName
-          });
-        }
-        saveRecords();
-        saveAudit();
-        renderKPIs();
-        renderDistrictsGrid();
-        renderTable();
-        renderAudit();
-        renderReport();
+    // 5. HELPER FUNCTIONS
+    function switchTab(tabId) {
+      ['dashboard', 'records', 'analytics', 'report', 'audit'].forEach(t => {
+        const v = document.getElementById('view-' + t);
+        const b = document.getElementById('tabBtn-' + t);
+        if (v) v.classList.add('hidden');
+        if (b) b.className = 'px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap';
+      });
+
+      const targetV = document.getElementById('view-' + tabId);
+      const targetB = document.getElementById('tabBtn-' + tabId);
+      if (targetV) targetV.classList.remove('hidden');
+      if (targetB) targetB.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-700 text-white transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap shadow-xs';
+
+      if (tabId === 'analytics') initCharts();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function filterByDistrict(d) {
+      const el = document.getElementById('filterDistrict');
+      if (el) el.value = d;
+      switchTab('records');
+      renderTable();
+    }
+
+    function setStandAloneViewMode(mode) {
+      currentViewMode = mode;
+      const cTable = document.getElementById('container-table');
+      const cCards = document.getElementById('container-cards');
+      const bTable = document.getElementById('vmBtn-table');
+      const bCards = document.getElementById('vmBtn-cards');
+
+      if (!cTable || !cCards) return;
+
+      if (mode === 'table') {
+        cTable.classList.remove('hidden');
+        cCards.classList.add('hidden');
+        if (bTable) bTable.className = 'px-3 py-1.5 rounded-lg font-bold bg-white text-blue-700 shadow-2xs min-h-[36px] flex items-center gap-1';
+        if (bCards) bCards.className = 'px-3 py-1.5 rounded-lg font-bold text-slate-600 min-h-[36px] flex items-center gap-1';
+      } else {
+        cTable.classList.add('hidden');
+        cCards.classList.remove('hidden');
+        if (bCards) bCards.className = 'px-3 py-1.5 rounded-lg font-bold bg-white text-blue-700 shadow-2xs min-h-[36px] flex items-center gap-1';
+        if (bTable) bTable.className = 'px-3 py-1.5 rounded-lg font-bold text-slate-600 min-h-[36px] flex items-center gap-1';
       }
     }
 
@@ -884,6 +1209,7 @@
       a.click();
     }
 
+    // 6. CHART.JS CHARTS
     let donutChart, barChart;
     function initCharts() {
       if (donutChart) donutChart.destroy();
@@ -894,17 +1220,17 @@
 
       if (canvasDonut) {
         const ctxDonut = canvasDonut.getContext('2d');
+        const c1 = records.filter(r => r.businessType === 'entertainment').length;
+        const c2 = records.filter(r => r.businessType === 'similar_entertainment').length;
+        const c3 = records.filter(r => r.businessType === 'hotel').length;
+        const c4 = records.filter(r => r.businessType === 'controlled').length;
+
         donutChart = new Chart(ctxDonut, {
           type: 'doughnut',
           data: {
             labels: ['สถานบริการ', 'คล้ายสถานบริการ', 'โรงแรม', 'กิจการควบคุม'],
             datasets: [{
-              data: [
-                records.filter(r => r.businessType === 'entertainment').length || 2,
-                records.filter(r => r.businessType === 'similar_entertainment').length || 1,
-                records.filter(r => r.businessType === 'hotel').length || 1,
-                records.filter(r => r.businessType === 'controlled').length || 1
-              ],
+              data: [c1, c2, c3, c4],
               backgroundColor: ['#1d4ed8', '#0284c7', '#6366f1', '#64748b']
             }]
           },
@@ -934,6 +1260,38 @@
           }
         });
       }
+    }
+
+    // 7. INITIAL STARTUP
+    function init() {
+      loadData();
+
+      // Populate Districts Filter & Modal Form
+      const filterDist = document.getElementById('filterDistrict');
+      const formDist = document.getElementById('formDistrict');
+      if (filterDist) {
+        filterDist.innerHTML = '<option value="all">ทุกอำเภอในสงขลา (16 อำเภอ)</option>';
+        DISTRICTS.forEach(d => {
+          filterDist.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+      }
+      if (formDist) {
+        formDist.innerHTML = '';
+        DISTRICTS.forEach(d => {
+          formDist.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+      }
+
+      setStandAloneViewMode(currentViewMode);
+      updateAllUI();
+
+      // Clock tick
+      setInterval(() => {
+        const el = document.getElementById('liveClock');
+        if (el) el.innerText = new Date().toLocaleString('th-TH');
+      }, 1000);
+
+      if (window.lucide) lucide.createIcons();
     }
 
     window.onload = init;

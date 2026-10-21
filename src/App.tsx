@@ -32,13 +32,20 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Inspection records list with localStorage persistence (with backwards migration)
+  // Inspection records list with localStorage persistence (with empty array persistence)
   const [records, setRecords] = useState<InspectionRecord[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_RECORDS) || localStorage.getItem('songkhla_security_inspection_records_v2');
-      if (saved) {
+      const saved = localStorage.getItem(STORAGE_KEY_RECORDS);
+      if (saved !== null) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      }
+      const legacy = localStorage.getItem('songkhla_security_inspection_records_v2');
+      if (legacy !== null) {
+        const parsed = JSON.parse(legacy);
+        if (Array.isArray(parsed)) {
           return parsed;
         }
       }
@@ -51,10 +58,17 @@ export default function App() {
   // Activity logs / Audit trail with localStorage persistence
   const [logs, setLogs] = useState<ActivityLog[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_LOGS) || localStorage.getItem('songkhla_security_inspection_logs_v2');
-      if (saved) {
+      const saved = localStorage.getItem(STORAGE_KEY_LOGS);
+      if (saved !== null) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
+      }
+      const legacy = localStorage.getItem('songkhla_security_inspection_logs_v2');
+      if (legacy !== null) {
+        const parsed = JSON.parse(legacy);
+        if (Array.isArray(parsed)) {
           return parsed;
         }
       }
@@ -184,15 +198,33 @@ export default function App() {
     setActiveTab('records');
   };
 
-  // Reset to default sample data (Administrative tool)
-  const handleResetToDefault = () => {
-    if (confirm('คุณต้องการรีเซ็ตฐานข้อมูลเป็นชุดข้อมูลตัวอย่างเริ่มต้นของจังหวัดสงขลา (12 แห่ง) หรือไม่?\n\n*คำเตือน: ข้อมูลสถานบริการที่คุณได้บันทึกเพิ่มหรือแก้ไขไว้จะถูกย้อนกลับเป็นค่าเริ่มต้น')) {
-      setRecords(INITIAL_INSPECTION_RECORDS);
-      setLogs(INITIAL_ACTIVITY_LOGS);
-      localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(INITIAL_INSPECTION_RECORDS));
-      localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(INITIAL_ACTIVITY_LOGS));
-      alert('รีเซ็ตฐานข้อมูลเป็นค่าเริ่มต้นเรียบร้อยแล้ว');
+  // 1. Reset all records and statistics to 0 (Reset Data)
+  const handleResetToZero = () => {
+    if (confirm('ยืนยันการ "รีเซ็ตข้อมูลเป็น 0 (Reset Data)" หรือไม่?\n\n*ข้อควรทราบ: ข้อมูลสถานประกอบการทั้งหมดจะถูกล้างเป็น 0 แห่ง และบันทึกลงใน localStorage ทันที (ท่านสามารถกด "โหลดข้อมูลตัวอย่างจริง" เพื่อดึงข้อมูลกลับมาได้ทุกเมื่อ)')) {
+      setRecords([]);
+      const clearLog: ActivityLog = {
+        id: `LOG-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        actionType: 'delete',
+        actionLabel: 'รีเซ็ตข้อมูลเป็น 0 (Reset Data)',
+        recordId: 'RESET-ZERO',
+        venueName: 'ทุกสถานประกอบการ (16 อำเภอ)',
+        officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
+        details: 'ดำเนินการล้างข้อมูลทะเบียนตรวจและสถิติทั้งหมดเป็น 0 รายการ บันทึกลง localStorage แล้ว'
+      };
+      setLogs(prev => [clearLog, ...prev]);
+      localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify([]));
+      alert('รีเซ็ตข้อมูลสถานประกอบการและสถิติทั้งหมดเป็น 0 แห่งเรียบร้อยแล้ว');
     }
+  };
+
+  // 2. Load Real/Sample Data for Songkhla (16 districts)
+  const handleLoadRealData = () => {
+    setRecords(INITIAL_INSPECTION_RECORDS);
+    setLogs(INITIAL_ACTIVITY_LOGS);
+    localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(INITIAL_INSPECTION_RECORDS));
+    localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(INITIAL_ACTIVITY_LOGS));
+    alert('โหลดข้อมูลตัวอย่างจริงของ 16 อำเภอในจังหวัดสงขลา (12 แห่ง) เรียบร้อยแล้ว ข้อมูลถูกบันทึกลง localStorage แล้ว');
   };
 
   return (
@@ -205,7 +237,8 @@ export default function App() {
         onClose={() => setIsMobileSidebarOpen(false)}
         totalRecordsCount={records.length}
         urgentCount={urgentCount}
-        onResetToDefault={handleResetToDefault}
+        onResetToZero={handleResetToZero}
+        onLoadRealData={handleLoadRealData}
       />
 
       {/* 2. Main Content Viewport (Fluid widescreen width scaling up to 1920px) */}
@@ -220,6 +253,8 @@ export default function App() {
             setSelectedDistrict('all');
             setActiveTab('records');
           }}
+          onResetToZero={handleResetToZero}
+          onLoadRealData={handleLoadRealData}
         />
 
         {/* Fluid Responsive Content Body (Optimized for Mobile, Tablet & Widescreen Desktop) */}
@@ -232,6 +267,8 @@ export default function App() {
               onOpenAddModal={handleOpenAddModal}
               onGoToAnalytics={() => setActiveTab('analytics')}
               onGoToRecords={() => setActiveTab('records')}
+              onResetToZero={handleResetToZero}
+              onLoadRealData={handleLoadRealData}
             />
           )}
 

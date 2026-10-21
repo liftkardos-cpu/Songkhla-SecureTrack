@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Plus, Clock, User, Shield, Bell } from 'lucide-react';
+import { Menu, Plus, Clock, User, Shield, Bell, Database, RotateCcw } from 'lucide-react';
 import { NavTab } from './Sidebar';
 
 interface TopHeaderProps {
@@ -8,6 +8,8 @@ interface TopHeaderProps {
   onOpenAddModal: () => void;
   urgentCount: number;
   onSelectUrgentNotification?: () => void;
+  onResetToZero?: () => void;
+  onLoadRealData?: () => void;
 }
 
 export const TopHeader: React.FC<TopHeaderProps> = ({
@@ -16,6 +18,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onOpenAddModal,
   urgentCount,
   onSelectUrgentNotification,
+  onResetToZero,
+  onLoadRealData,
 }) => {
   const [currentDateTime, setCurrentDateTime] = useState('');
 
@@ -112,6 +116,30 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           >
             <Bell className="w-5 h-5 text-slate-600 group-hover:text-blue-700" />
             <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white animate-pulse" />
+          </button>
+        )}
+
+        {/* Load Real Data Button */}
+        {onLoadRealData && (
+          <button
+            onClick={onLoadRealData}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl transition-all shadow-2xs whitespace-nowrap"
+            title="โหลดข้อมูลตัวอย่างจริงของ 16 อำเภอในสงขลา บันทึกลง localStorage"
+          >
+            <Database className="w-3.5 h-3.5 text-emerald-600" />
+            <span>โหลดข้อมูลตัวอย่างจริง</span>
+          </button>
+        )}
+
+        {/* Reset to 0 Button */}
+        {onResetToZero && (
+          <button
+            onClick={onResetToZero}
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl transition-all shadow-2xs whitespace-nowrap"
+            title="รีเซ็ตข้อมูลเป็น 0 (Reset Data) และอัปเดต localStorage"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
+            <span>รีเซ็ตเป็น 0</span>
           </button>
         )}
 

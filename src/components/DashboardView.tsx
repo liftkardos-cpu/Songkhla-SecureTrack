@@ -14,7 +14,9 @@ import {
   BarChart2,
   ChevronRight,
   Shield,
-  ArrowUpRight
+  ArrowUpRight,
+  Database,
+  RotateCcw
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -24,6 +26,8 @@ interface DashboardViewProps {
   onOpenAddModal: () => void;
   onGoToAnalytics: () => void;
   onGoToRecords: () => void;
+  onResetToZero?: () => void;
+  onLoadRealData?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -33,6 +37,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenAddModal,
   onGoToAnalytics,
   onGoToRecords,
+  onResetToZero,
+  onLoadRealData,
 }) => {
   // Aggregate KPIs
   const totalVenues = records.length;
@@ -93,13 +99,35 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {onLoadRealData && (
+              <button
+                onClick={onLoadRealData}
+                className="px-3.5 py-2.5 rounded-xl bg-emerald-600/80 hover:bg-emerald-600 active:bg-emerald-700 border border-emerald-400/40 text-white text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-1.5 shadow-xs"
+                title="โหลดข้อมูลตัวอย่างจริงของ 16 อำเภอในสงขลา บันทึกลง localStorage"
+              >
+                <Database className="w-4 h-4 text-emerald-200" />
+                <span>โหลดข้อมูลตัวอย่างจริง</span>
+              </button>
+            )}
+
+            {onResetToZero && (
+              <button
+                onClick={onResetToZero}
+                className="px-3 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/40 border border-rose-400/30 text-rose-200 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-2xs"
+                title="รีเซ็ตข้อมูลเป็น 0 (Reset Data)"
+              >
+                <RotateCcw className="w-4 h-4 text-rose-300" />
+                <span>รีเซ็ตเป็น 0</span>
+              </button>
+            )}
+
             <button
               onClick={onGoToAnalytics}
-              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/15 border border-white/20 text-white text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-2 shadow-xs"
+              className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/15 border border-white/20 text-white text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-1.5 shadow-xs"
             >
               <BarChart2 className="w-4 h-4 text-amber-400" />
-              <span>ดูกราฟวิเคราะห์เชิงลึก</span>
+              <span>ดูกราฟวิเคราะห์</span>
             </button>
 
             <button
@@ -112,6 +140,34 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Zero Data Alert (When user has reset data to 0) */}
+      {totalVenues === 0 && (
+        <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-5 text-amber-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-200/70 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+              <RotateCcw className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-amber-900">
+                สถานะระบบ: ฐานข้อมูลปัจจุบันเป็น 0 แห่ง (Reset Data)
+              </h4>
+              <p className="text-xs text-amber-800/80 mt-0.5 leading-relaxed">
+                ข้อมูลสถานประกอบการและสถิติทั้งหมดถูกรีเซ็ตเป็นศูนย์และบันทึกใน localStorage เรียบร้อยแล้ว คุณสามารถเริ่มเพิ่มข้อมูลใหม่ หรือคลิกปุ่มเพื่อโหลดข้อมูลตัวอย่างจริงของสงขลา
+              </p>
+            </div>
+          </div>
+          {onLoadRealData && (
+            <button
+              onClick={onLoadRealData}
+              className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 shrink-0"
+            >
+              <Database className="w-4 h-4" />
+              <span>โหลดข้อมูลตัวอย่างจริง (Load Real Data)</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* 3. Modern KPI Cards Grid (Glassmorphism, rounded-2xl, hover:-translate-y-1) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
