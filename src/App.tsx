@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 
 const STORAGE_KEY_RECORDS = 'songkhla_securetrack_records_v1';
+const STORAGE_KEY_REAL_RECORDS = 'songkhla_securetrack_real_records_v1';
+const STORAGE_KEY_ACTIVE_MODE = 'songkhla_securetrack_active_mode_v1';
 const STORAGE_KEY_LOGS = 'songkhla_securetrack_logs_v1';
 
 export default function App() {
@@ -32,16 +34,32 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Inspection records list with localStorage persistence (with empty array persistence)
+  // Active data mode: 'mock' (Section 1) or 'real' (Section 2)
+  const [dataMode, setDataMode] = useState<'mock' | 'real'>(() => {
+    try {
+      const savedMode = localStorage.getItem(STORAGE_KEY_ACTIVE_MODE);
+      if (savedMode === 'real') return 'real';
+    } catch (e) {
+      console.error('Failed to get saved mode:', e);
+    }
+    return 'mock';
+  });
+
+  // Inspection records list with localStorage persistence
   const [records, setRecords] = useState<InspectionRecord[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_RECORDS);
+      const savedMode = localStorage.getItem(STORAGE_KEY_ACTIVE_MODE);
+      const targetKey = savedMode === 'real' ? STORAGE_KEY_REAL_RECORDS : STORAGE_KEY_RECORDS;
+      const saved = localStorage.getItem(targetKey);
+
       if (saved !== null) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
           return parsed;
         }
       }
+
+      // Check legacy key if exists
       const legacy = localStorage.getItem('songkhla_security_inspection_records_v2');
       if (legacy !== null) {
         const parsed = JSON.parse(legacy);
@@ -52,6 +70,8 @@ export default function App() {
     } catch (e) {
       console.error('Failed to parse records:', e);
     }
+
+    // Section 1: Default initial mock data for first-time visitors
     return INITIAL_INSPECTION_RECORDS;
   });
 
@@ -86,14 +106,18 @@ export default function App() {
   const [editingRecord, setEditingRecord] = useState<InspectionRecord | null>(null);
   const [viewingRecord, setViewingRecord] = useState<InspectionRecord | null>(null);
 
-  // Sync records to localStorage
+  // Sync records and dataMode to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+      if (dataMode === 'real') {
+        localStorage.setItem(STORAGE_KEY_REAL_RECORDS, JSON.stringify(records));
+      }
+      localStorage.setItem(STORAGE_KEY_ACTIVE_MODE, dataMode);
     } catch (e) {
       console.error('Failed to save records:', e);
     }
-  }, [records]);
+  }, [records, dataMode]);
 
   // Sync logs to localStorage
   useEffect(() => {
@@ -198,33 +222,76 @@ export default function App() {
     setActiveTab('records');
   };
 
-  // 1. Reset all records and statistics to 0 (Reset Data)
-  const handleResetToZero = () => {
-    if (confirm('ยืนยันการ "รีเซ็ตข้อมูลเป็น 0 (Reset Data)" หรือไม่?\n\n*ข้อควรทราบ: ข้อมูลสถานประกอบการทั้งหมดจะถูกล้างเป็น 0 แห่ง และบันทึกลงใน localStorage ทันที (ท่านสามารถกด "โหลดข้อมูลตัวอย่างจริง" เพื่อดึงข้อมูลกลับมาได้ทุกเมื่อ)')) {
-      setRecords([]);
-      const clearLog: ActivityLog = {
-        id: `LOG-${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        actionType: 'delete',
-        actionLabel: 'รีเซ็ตข้อมูลเป็น 0 (Reset Data)',
-        recordId: 'RESET-ZERO',
-        venueName: 'ทุกสถานประกอบการ (16 อำเภอ)',
-        officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
-        details: 'ดำเนินการล้างข้อมูลทะเบียนตรวจและสถิติทั้งหมดเป็น 0 รายการ บันทึกลง localStorage แล้ว'
-      };
-      setLogs(prev => [clearLog, ...prev]);
-      localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify([]));
-      alert('รีเซ็ตข้อมูลสถานประกอบการและสถิติทั้งหมดเป็น 0 แห่งเรียบร้อยแล้ว');
+  // 1. Activate Real Data Mode (Starting fresh from 0 or existing real records with auto-save)
+  const handleActivateRealDataMode = () => {
+    setDataMode('real');
+    localStorage.setItem(STORAGE_KEY_ACTIVE_MODE, 'real');
+    const savedReal = localStorage.getItem(STORAGE_KEY_REAL_RECORDS);
+    let realData: InspectionRecord[] = [];
+    if (savedReal !== null) {
+      try {
+        const parsed = JSON.parse(savedReal);
+        if (Array.isArray(parsed)) {
+          realData = parsed;
+        }
+      } catch (e) {
+        console.error(e);
+      }
     }
+    setRecords(realData);
+    addAuditLog(
+      'create',
+      'เข้าสู่โหมดข้อมูลจริง (Real Data Mode)',
+      'MODE-REAL',
+      'ระบบรวม 16 อำเภอ',
+      'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
+      `เปิดใช้งานโหมดข้อมูลจริง (ปัจจุบันมี ${realData.length} แห่ง) เริ่มต้นบันทึกและ Auto-Save ลง localStorage`
+    );
+    alert(
+      'สลับเข้าสู่ "โหมดข้อมูลจริง / เริ่มต้นใหม่" เรียบร้อยแล้ว!\n\n' +
+      '• ข้อมูลเริ่มต้นจากหน้างานจริง (ปัจจุบันมี ' + realData.length + ' รายการ)\n' +
+      '• ทุกรายการที่ท่านเพิ่ม/แก้ไข จะถูกบันทึกอัตโนมัติลงในเบราว์เซอร์ทันที (Auto-Save)\n' +
+      '• เมื่อกดรีเฟรช (F5) ข้อมูลจริงที่ท่านกรอกจะไม่สูญหาย 100%'
+    );
   };
 
-  // 2. Load Real/Sample Data for Songkhla (16 districts)
-  const handleLoadRealData = () => {
+  // 2. Load Sample/Mock Data (Section 1: Initial Mock Data covering 16 districts)
+  const handleLoadSampleData = () => {
+    setDataMode('mock');
+    localStorage.setItem(STORAGE_KEY_ACTIVE_MODE, 'mock');
     setRecords(INITIAL_INSPECTION_RECORDS);
     setLogs(INITIAL_ACTIVITY_LOGS);
     localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(INITIAL_INSPECTION_RECORDS));
     localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(INITIAL_ACTIVITY_LOGS));
-    alert('โหลดข้อมูลตัวอย่างจริงของ 16 อำเภอในจังหวัดสงขลา (12 แห่ง) เรียบร้อยแล้ว ข้อมูลถูกบันทึกลง localStorage แล้ว');
+    addAuditLog(
+      'update',
+      'โหลดข้อมูลตัวอย่าง (Mock Data)',
+      'LOAD-SAMPLE',
+      'สถานบริการ 16 อำเภอสงขลา',
+      'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
+      'โหลดชุดข้อมูลตัวอย่าง 12 รายการครอบคลุม 16 อำเภอในจังหวัดสงขลา'
+    );
+    alert('โหลดข้อมูลตัวอย่าง 16 อำเภอของสงขลา (12 แห่ง) เรียบร้อยแล้ว');
+  };
+
+  // 3. Master Reset Button (Reset to 0 with confirmation popup)
+  const handleResetToZero = () => {
+    if (confirm('⚠️ ยืนยันการ "รีเซ็ตข้อมูลเป็น 0 (Reset All to 0)" หรือไม่?\n\n• ข้อมูลการตรวจทั้งหมดจะถูกล้างเป็น 0 รายการทันที\n• สถิติทุกอำเภอและกราฟจะกลายเป็น 0 ทั้งหมด\n• บันทึกการเคลียร์ข้อมูลลงใน localStorage โดยตรง\n\n(ท่านสามารถคลิก "โหลดข้อมูลตัวอย่าง" หรือ "เพิ่มผลตรวจใหม่" ได้ทุกเมื่อ)')) {
+      setRecords([]);
+      if (dataMode === 'real') {
+        localStorage.setItem(STORAGE_KEY_REAL_RECORDS, JSON.stringify([]));
+      }
+      localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify([]));
+      addAuditLog(
+        'delete',
+        'รีเซ็ตข้อมูลเป็น 0 (Reset All to 0)',
+        'RESET-ZERO',
+        'ทุกสถานประกอบการ (16 อำเภอ)',
+        'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
+        'ดำเนินการล้างข้อมูลทะเบียนตรวจและสถิติทั้งหมดเป็น 0 รายการ บันทึกลง localStorage แล้ว'
+      );
+      alert('รีเซ็ตข้อมูลสถานประกอบการและสถิติทั้งหมดเป็น 0 แห่งเรียบร้อยแล้ว');
+    }
   };
 
   return (
@@ -237,8 +304,11 @@ export default function App() {
         onClose={() => setIsMobileSidebarOpen(false)}
         totalRecordsCount={records.length}
         urgentCount={urgentCount}
+        dataMode={dataMode}
+        onActivateRealDataMode={handleActivateRealDataMode}
+        onLoadSampleData={handleLoadSampleData}
         onResetToZero={handleResetToZero}
-        onLoadRealData={handleLoadRealData}
+        onLoadRealData={handleLoadSampleData}
       />
 
       {/* 2. Main Content Viewport (Fluid widescreen width scaling up to 1920px) */}
@@ -253,8 +323,11 @@ export default function App() {
             setSelectedDistrict('all');
             setActiveTab('records');
           }}
+          dataMode={dataMode}
+          onActivateRealDataMode={handleActivateRealDataMode}
+          onLoadSampleData={handleLoadSampleData}
           onResetToZero={handleResetToZero}
-          onLoadRealData={handleLoadRealData}
+          onLoadRealData={handleActivateRealDataMode}
         />
 
         {/* Fluid Responsive Content Body (Optimized for Mobile, Tablet & Widescreen Desktop) */}
@@ -267,8 +340,11 @@ export default function App() {
               onOpenAddModal={handleOpenAddModal}
               onGoToAnalytics={() => setActiveTab('analytics')}
               onGoToRecords={() => setActiveTab('records')}
+              dataMode={dataMode}
+              onActivateRealDataMode={handleActivateRealDataMode}
+              onLoadSampleData={handleLoadSampleData}
               onResetToZero={handleResetToZero}
-              onLoadRealData={handleLoadRealData}
+              onLoadRealData={handleLoadSampleData}
             />
           )}
 

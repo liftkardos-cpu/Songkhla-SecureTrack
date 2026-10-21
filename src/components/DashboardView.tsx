@@ -26,6 +26,9 @@ interface DashboardViewProps {
   onOpenAddModal: () => void;
   onGoToAnalytics: () => void;
   onGoToRecords: () => void;
+  dataMode?: 'mock' | 'real';
+  onActivateRealDataMode?: () => void;
+  onLoadSampleData?: () => void;
   onResetToZero?: () => void;
   onLoadRealData?: () => void;
 }
@@ -37,6 +40,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenAddModal,
   onGoToAnalytics,
   onGoToRecords,
+  dataMode = 'mock',
+  onActivateRealDataMode,
+  onLoadSampleData,
   onResetToZero,
   onLoadRealData,
 }) => {
@@ -80,6 +86,60 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         onGoToRecordsTable={onGoToRecords}
       />
 
+      {/* 1.5 Active Mode Notification Banner */}
+      <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs sm:text-sm shadow-xs transition-all ${
+        dataMode === 'real'
+          ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950'
+          : 'bg-blue-50/80 border-blue-200 text-blue-950'
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+            dataMode === 'real' ? 'bg-emerald-200 text-emerald-800' : 'bg-blue-200 text-blue-800'
+          }`}>
+            <Database className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm">
+                {dataMode === 'real' ? '🟢 กำลังทำงานใน "โหมดข้อมูลจริง (Real Data Mode)"' : '🔷 กำลังทำงานใน "โหมดข้อมูลตัวอย่าง (Mock Data)"'}
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/80 border font-mono">
+                Auto-Save: localStorage
+              </span>
+            </div>
+            <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+              {dataMode === 'real'
+                ? 'ทุกข้อมูลที่ท่านเพิ่มหรือแก้ไขจะถูกบันทึกอัตโนมัติลงในเบราว์เซอร์ทันที รีเฟรช (F5) ข้อมูลจริงไม่สูญหาย'
+                : 'แสดงชุดข้อมูลตัวอย่าง 16 อำเภอของสงขลา ท่านสามารถกดปุ่ม "โหมดข้อมูลจริง / เริ่มต้นใหม่" เพื่อเริ่มบันทึกงานจริงจาก 0'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+          {dataMode === 'mock' ? (
+            (onActivateRealDataMode || onLoadRealData) && (
+              <button
+                onClick={onActivateRealDataMode || onLoadRealData}
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-xs transition-all flex items-center gap-1.5 min-h-[38px]"
+              >
+                <Database className="w-3.5 h-3.5" />
+                <span>เข้าสู่โหมดข้อมูลจริง (Real Data)</span>
+              </button>
+            )
+          ) : (
+            onLoadSampleData && (
+              <button
+                onClick={onLoadSampleData}
+                className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-semibold rounded-xl text-xs shadow-2xs transition-all flex items-center gap-1.5"
+              >
+                <Database className="w-3.5 h-3.5 text-blue-600" />
+                <span>โหลดข้อมูลตัวอย่าง</span>
+              </button>
+            )
+          )}
+        </div>
+      </div>
+
       {/* 2. Executive Welcome & Hero Stat Banner */}
       <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white rounded-2xl p-6 sm:p-7 shadow-lg border border-slate-800 relative overflow-hidden">
         {/* Subtle decorative glow */}
@@ -100,14 +160,29 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            {onLoadRealData && (
+            {(onActivateRealDataMode || onLoadRealData) && (
               <button
-                onClick={onLoadRealData}
-                className="px-3.5 py-2.5 rounded-xl bg-emerald-600/80 hover:bg-emerald-600 active:bg-emerald-700 border border-emerald-400/40 text-white text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-1.5 shadow-xs"
-                title="โหลดข้อมูลตัวอย่างจริงของ 16 อำเภอในสงขลา บันทึกลง localStorage"
+                onClick={onActivateRealDataMode || onLoadRealData}
+                className={`px-3.5 py-2.5 rounded-xl border text-white text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-1.5 shadow-xs ${
+                  dataMode === 'real'
+                    ? 'bg-emerald-600 hover:bg-emerald-500 border-emerald-400'
+                    : 'bg-emerald-700/80 hover:bg-emerald-700 border-emerald-500/50'
+                }`}
+                title="สลับเข้าสู่โหมดข้อมูลจริง เริ่มต้นจาก 0 รายการ บันทึกอัตโนมัติลง localStorage"
               >
                 <Database className="w-4 h-4 text-emerald-200" />
-                <span>โหลดข้อมูลตัวอย่างจริง</span>
+                <span>โหมดข้อมูลจริง / เริ่มต้นใหม่</span>
+              </button>
+            )}
+
+            {onLoadSampleData && (
+              <button
+                onClick={onLoadSampleData}
+                className="px-3.5 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-xs"
+                title="โหลดชุดข้อมูลตัวอย่าง 16 อำเภอของสงขลา"
+              >
+                <Database className="w-4 h-4 text-blue-400" />
+                <span>โหลดข้อมูลตัวอย่าง</span>
               </button>
             )}
 

@@ -22,6 +22,9 @@ interface SidebarProps {
   onClose: () => void;
   totalRecordsCount: number;
   urgentCount: number;
+  dataMode?: 'mock' | 'real';
+  onActivateRealDataMode?: () => void;
+  onLoadSampleData?: () => void;
   onResetToDefault?: () => void;
   onResetToZero?: () => void;
   onLoadRealData?: () => void;
@@ -34,6 +37,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   totalRecordsCount,
   urgentCount,
+  dataMode = 'mock',
+  onActivateRealDataMode,
+  onLoadSampleData,
   onResetToDefault,
   onResetToZero,
   onLoadRealData,
@@ -197,14 +203,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
 
-          {onLoadRealData && (
+          {(onActivateRealDataMode || onLoadRealData) && (
             <button
-              onClick={onLoadRealData}
-              className="w-full py-2 px-3 rounded-xl border border-emerald-500/30 hover:border-emerald-500/60 bg-emerald-950/40 hover:bg-emerald-950/70 text-emerald-300 text-[11px] font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs"
-              title="โหลดข้อมูลตัวอย่างจริงของ 16 อำเภอในสงขลา บันทึกลง localStorage"
+              onClick={onActivateRealDataMode || onLoadRealData}
+              className={`w-full py-2 px-3 rounded-xl border text-[11px] font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs ${
+                dataMode === 'real'
+                  ? 'border-emerald-500/80 bg-emerald-900/60 text-emerald-200 ring-1 ring-emerald-500/40'
+                  : 'border-emerald-500/30 hover:border-emerald-500/60 bg-emerald-950/40 hover:bg-emerald-950/70 text-emerald-300'
+              }`}
+              title="สลับเข้าสู่โหมดข้อมูลจริง เริ่มต้นจาก 0 รายการ บันทึกอัตโนมัติลง localStorage"
             >
               <Database className="w-3.5 h-3.5 text-emerald-400" />
-              <span>โหลดข้อมูลตัวอย่างจริง</span>
+              <span>โหมดข้อมูลจริง / เริ่มต้นใหม่</span>
+            </button>
+          )}
+
+          {onLoadSampleData && (
+            <button
+              onClick={onLoadSampleData}
+              className="w-full py-1.5 px-3 rounded-xl border border-slate-700/60 hover:border-slate-600 bg-slate-900/70 hover:bg-slate-800 text-slate-300 text-[11px] font-medium transition-all flex items-center justify-center gap-1.5"
+              title="โหลดข้อมูลตัวอย่าง 16 อำเภอของสงขลาสำหรับทดสอบระบบ"
+            >
+              <Database className="w-3.5 h-3.5 text-blue-400" />
+              <span>โหลดข้อมูลตัวอย่าง (16 อำเภอ)</span>
             </button>
           )}
 
@@ -212,10 +233,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={onResetToZero}
               className="w-full py-1.5 px-3 rounded-xl border border-rose-900/40 hover:border-rose-700/60 bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 text-[11px] font-medium transition-all flex items-center justify-center gap-1.5"
-              title="รีเซ็ตข้อมูลเป็น 0 (Reset Data)"
+              title="รีเซ็ตข้อมูลเป็น 0 (Reset All to 0) เคลียร์สถิติและ localStorage ทั้งหมด"
             >
               <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
-              <span>รีเซ็ตข้อมูลเป็น 0 (Reset Data)</span>
+              <span>รีเซ็ตข้อมูลเป็น 0 (Reset All to 0)</span>
             </button>
           )}
         </div>

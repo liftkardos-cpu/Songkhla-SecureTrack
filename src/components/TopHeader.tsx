@@ -8,6 +8,9 @@ interface TopHeaderProps {
   onOpenAddModal: () => void;
   urgentCount: number;
   onSelectUrgentNotification?: () => void;
+  dataMode?: 'mock' | 'real';
+  onActivateRealDataMode?: () => void;
+  onLoadSampleData?: () => void;
   onResetToZero?: () => void;
   onLoadRealData?: () => void;
 }
@@ -18,6 +21,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onOpenAddModal,
   urgentCount,
   onSelectUrgentNotification,
+  dataMode = 'mock',
+  onActivateRealDataMode,
+  onLoadSampleData,
   onResetToZero,
   onLoadRealData,
 }) => {
@@ -119,27 +125,56 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </button>
         )}
 
-        {/* Load Real Data Button */}
-        {onLoadRealData && (
+        {/* Mode Indicator Badge */}
+        {dataMode === 'real' ? (
+          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-300 text-[11px] font-semibold text-emerald-800">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>โหมดข้อมูลจริง (Auto-Save)</span>
+          </div>
+        ) : (
+          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-200 text-[11px] font-semibold text-blue-800">
+            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+            <span>โหมดข้อมูลตัวอย่าง</span>
+          </div>
+        )}
+
+        {/* Section 2: Real Data Mode Button */}
+        {(onActivateRealDataMode || onLoadRealData) && (
           <button
-            onClick={onLoadRealData}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl transition-all shadow-2xs whitespace-nowrap"
-            title="โหลดข้อมูลตัวอย่างจริงของ 16 อำเภอในสงขลา บันทึกลง localStorage"
+            onClick={onActivateRealDataMode || onLoadRealData}
+            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition-all shadow-2xs whitespace-nowrap ${
+              dataMode === 'real'
+                ? 'bg-emerald-600 text-white hover:bg-emerald-500 border border-emerald-600 shadow-xs'
+                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300'
+            }`}
+            title="สลับเข้าสู่โหมดข้อมูลจริง เริ่มต้นจาก 0 รายการ บันทึกอัตโนมัติลง localStorage (F5 ข้อมูลไม่สูญหาย)"
           >
-            <Database className="w-3.5 h-3.5 text-emerald-600" />
-            <span>โหลดข้อมูลตัวอย่างจริง</span>
+            <Database className="w-3.5 h-3.5 text-emerald-600 group-hover:text-white" />
+            <span>โหมดข้อมูลจริง / เริ่มต้นใหม่</span>
           </button>
         )}
 
-        {/* Reset to 0 Button */}
+        {/* Section 1: Load Sample Data Button */}
+        {onLoadSampleData && (
+          <button
+            onClick={onLoadSampleData}
+            className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-xl transition-all shadow-2xs whitespace-nowrap"
+            title="โหลดข้อมูลตัวอย่าง 16 อำเภอของสงขลาสำหรับทดสอบระบบ"
+          >
+            <Database className="w-3.5 h-3.5 text-blue-600" />
+            <span>โหลดข้อมูลตัวอย่าง</span>
+          </button>
+        )}
+
+        {/* Section 3: Reset All to 0 Button */}
         {onResetToZero && (
           <button
             onClick={onResetToZero}
             className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl transition-all shadow-2xs whitespace-nowrap"
-            title="รีเซ็ตข้อมูลเป็น 0 (Reset Data) และอัปเดต localStorage"
+            title="รีเซ็ตข้อมูลเป็น 0 (Reset All to 0) เคลียร์สถิติและ localStorage ทั้งหมด"
           >
             <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
-            <span>รีเซ็ตเป็น 0</span>
+            <span>รีเซ็ตข้อมูลเป็น 0</span>
           </button>
         )}
 

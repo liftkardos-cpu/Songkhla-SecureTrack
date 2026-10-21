@@ -31,9 +31,9 @@
 </head>
 <body class="bg-slate-100/70 text-slate-800 antialiased min-h-screen flex flex-col w-full selection:bg-blue-600 selection:text-white">
 
-  <!-- 1. FIXED TOP HEADER -->
+  <!-- ================= 1. FIXED TOP HEADER ================= -->
   <header class="bg-slate-950 border-b border-slate-800 text-white sticky top-0 z-40 shadow-md">
-    <!-- Sub-bar -->
+    <!-- Sub-bar: Office info, clock, and active mode indicator -->
     <div class="px-3 sm:px-6 py-1.5 border-b border-slate-800/80 text-xs text-slate-400 flex flex-wrap items-center justify-between gap-2">
       <div class="flex items-center gap-2">
         <span class="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
@@ -41,16 +41,27 @@
         <span class="hidden md:inline text-slate-600">|</span>
         <span class="hidden md:inline">ศาลากลางจังหวัดสงขลา ถ.ราชดำเนิน อ.เมืองสงขลา 90000</span>
       </div>
-      <div class="flex items-center gap-3">
+      
+      <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+        <!-- Live Clock -->
         <div id="liveClock" class="font-mono tabular-nums text-slate-300 text-xs hidden sm:block"></div>
+        
+        <!-- Mode Badge Indicator -->
+        <span id="activeModeBadge" class="px-2.5 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-700/60 text-[10px] font-medium flex items-center gap-1.5 shadow-2xs">
+          <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+          <span id="activeModeText">โหมดข้อมูลตัวอย่าง (Mock Data)</span>
+        </span>
+        
+        <!-- localStorage Status -->
         <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/60 text-[10px] font-mono flex items-center gap-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> localStorage พร้อมใช้งาน
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Auto-Save Active
         </span>
       </div>
     </div>
 
-    <!-- Main Top Bar -->
-    <div class="w-full max-w-[1850px] mx-auto px-3 sm:px-6 py-3 flex items-center justify-between gap-3">
+    <!-- Main Top Bar: Branding & 3 Data Management Action Buttons -->
+    <div class="w-full max-w-[1850px] mx-auto px-3 sm:px-6 py-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <!-- Left: Logo & Title -->
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 border border-blue-500/40 flex items-center justify-center text-amber-300 shadow-lg shrink-0">
           <i data-lucide="shield-check" class="w-6 h-6"></i>
@@ -58,7 +69,7 @@
         <div>
           <h1 class="text-sm sm:text-lg font-bold text-white tracking-tight leading-tight line-clamp-1 font-heading flex items-center gap-2">
             <span>Songkhla SecureTrack</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-900/80 text-blue-200 border border-blue-700/60 font-mono hidden sm:inline">V2.6</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-900/80 text-blue-200 border border-blue-700/60 font-mono">V2.7</span>
           </h1>
           <p class="text-[11px] sm:text-xs text-slate-400 line-clamp-1">
             ระบบติดตามและตรวจสอบความปลอดภัยและกิจการควบคุม จังหวัดสงขลา (16 อำเภอ)
@@ -66,31 +77,42 @@
         </div>
       </div>
 
-      <!-- Action Buttons in Header -->
-      <div class="flex items-center gap-2">
-        <!-- Load Real/Sample Data Button -->
+      <!-- Right: The 3 Core Data Management Action Buttons + Add Button -->
+      <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end">
+        <!-- 1. Real Data Mode Button (Section 2: Starts from 0, auto-saves to localStorage) -->
         <button 
-          onclick="loadRealData()" 
-          class="px-3 py-1.5 sm:px-3.5 sm:py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-1.5 transition-all min-h-[40px] whitespace-nowrap"
-          title="โหลดข้อมูลตัวอย่างจริงของ 16 อำเภอในสงขลา บันทึกลง localStorage"
+          id="btnRealDataMode"
+          onclick="activateRealDataMode()" 
+          class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-1.5 transition-all min-h-[40px] whitespace-nowrap"
+          title="สลับเข้าสู่โหมดข้อมูลจริง เริ่มต้นบันทึกผลการตรวจจริง (Auto-save ลง localStorage)"
         >
-          <i data-lucide="database" class="w-4 h-4"></i>
-          <span class="hidden sm:inline">โหลดข้อมูลตัวอย่างจริง</span>
-          <span class="sm:hidden">โหลดจริง</span>
+          <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-200"></i>
+          <span>โหมดข้อมูลจริง / เริ่มต้นใหม่</span>
         </button>
 
-        <!-- Reset to 0 Button -->
+        <!-- 2. Load Mock Data Button (Section 1: Initial Mock Data) -->
         <button 
-          onclick="resetToZero()" 
-          class="px-2.5 py-1.5 sm:px-3 sm:py-2 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/80 rounded-xl text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-1.5 transition-all min-h-[40px] whitespace-nowrap"
-          title="รีเซ็ตข้อมูลเป็น 0 (Reset Data) และอัปเดต localStorage"
+          id="btnLoadMockData"
+          onclick="loadMockData()" 
+          class="px-2.5 sm:px-3 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 border border-slate-700 rounded-xl text-xs sm:text-sm font-medium shadow-xs flex items-center gap-1.5 transition-all min-h-[40px] whitespace-nowrap"
+          title="โหลดข้อมูลตัวอย่าง 16 อำเภอของสงขลาสำหรับทดสอบระบบ"
         >
-          <i data-lucide="rotate-ccw" class="w-4 h-4 text-rose-400"></i>
-          <span class="hidden sm:inline">รีเซ็ตข้อมูลเป็น 0</span>
-          <span class="sm:hidden">รีเซ็ต 0</span>
+          <i data-lucide="database" class="w-4 h-4 text-blue-400"></i>
+          <span class="hidden sm:inline">โหลดข้อมูลตัวอย่าง</span>
+          <span class="sm:hidden">ข้อมูลตัวอย่าง</span>
         </button>
 
-        <!-- Add Record Primary Button -->
+        <!-- 3. Master Reset Button (Section 3: Reset All to 0) -->
+        <button 
+          onclick="masterResetToZero()" 
+          class="px-2.5 sm:px-3 py-2 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/80 rounded-xl text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-1.5 transition-all min-h-[40px] whitespace-nowrap"
+          title="รีเซ็ตข้อมูลเป็น 0 (Reset All to 0) เคลียร์สถิติและ localStorage ทั้งหมด"
+        >
+          <i data-lucide="trash-2" class="w-4 h-4 text-rose-400"></i>
+          <span>รีเซ็ตข้อมูลเป็น 0</span>
+        </button>
+
+        <!-- Primary Add Record Button -->
         <button 
           onclick="openModal()" 
           class="px-3.5 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md flex items-center gap-1.5 transition-all min-h-[40px] whitespace-nowrap"
@@ -103,8 +125,8 @@
     </div>
   </header>
 
-  <!-- 2. STICKY NAVIGATION TABS -->
-  <div class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2 shadow-2xs sticky top-[72px] sm:top-[82px] z-30 no-print">
+  <!-- ================= 2. STICKY NAVIGATION TABS ================= -->
+  <div class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2 shadow-2xs sticky top-[108px] md:top-[82px] z-30 no-print">
     <div class="w-full max-w-[1850px] mx-auto flex items-center justify-between gap-3 overflow-x-auto">
       <nav class="flex items-center gap-1.5">
         <button onclick="switchTab('dashboard')" id="tabBtn-dashboard" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-700 text-white transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap shadow-xs">
@@ -124,16 +146,36 @@
         </button>
       </nav>
 
-      <div class="flex items-center gap-2 shrink-0">
-        <span class="text-xs text-slate-500 font-mono hidden lg:inline">
-          ระบบสารสนเทศความมั่นคง จ.สงขลา
+      <div class="flex items-center gap-3 shrink-0">
+        <span id="storageInfoLabel" class="text-xs text-slate-500 font-mono hidden lg:inline">
+          localStorage: บันทึกอัตโนมัติ
         </span>
       </div>
     </div>
   </div>
 
-  <!-- 3. MAIN CONTENT BODY -->
+  <!-- ================= 3. MAIN CONTENT BODY ================= -->
   <main class="flex-1 w-full max-w-[1850px] mx-auto p-3 sm:p-5 lg:p-7 space-y-6">
+
+    <!-- Active Mode Indicator Alert Box -->
+    <div id="modeNotificationBanner" class="p-3.5 sm:p-4 rounded-2xl border flex items-center justify-between gap-3 text-xs sm:text-sm transition-all shadow-xs">
+      <div class="flex items-center gap-2.5">
+        <div id="modeBannerIcon" class="w-7 h-7 rounded-xl flex items-center justify-center shrink-0">
+          <i data-lucide="info" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <span id="modeBannerTitle" class="font-bold">กำลังใช้งานโหมดข้อมูลตัวอย่าง</span>
+          <span id="modeBannerDesc" class="text-slate-600 block text-xs mt-0.5">
+            ข้อมูลที่แสดงเป็นชุดข้อมูลตัวอย่าง 16 อำเภอของสงขลา ท่านสามารถกดปุ่ม "โหมดข้อมูลจริง / เริ่มต้นใหม่" เพื่อบันทึกข้อมูลหน้างานจริง
+          </span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="modeBannerActionBtn" onclick="activateRealDataMode()" class="px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs">
+          เข้าสู่โหมดข้อมูลจริง
+        </button>
+      </div>
+    </div>
 
     <!-- ================= TAB 1: DASHBOARD ================= -->
     <section id="view-dashboard" class="space-y-6">
@@ -142,21 +184,27 @@
       <div id="zeroDataBanner" class="hidden bg-amber-50/95 border border-amber-300 rounded-2xl p-5 text-amber-900 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div class="flex items-start gap-3">
           <div class="w-10 h-10 rounded-xl bg-amber-200 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
-            <i data-lucide="info" class="w-5 h-5"></i>
+            <i data-lucide="alert-circle" class="w-5 h-5"></i>
           </div>
           <div>
             <h4 class="font-bold text-sm text-amber-950 font-heading">
-              สถานะปัจจุบัน: ข้อมูลในระบบถูกรีเซ็ตเป็น 0 (Reset Data)
+              สถานะปัจจุบัน: ข้อมูลในระบบเป็น 0 รายการ (พร้อมบันทึกข้อมูลจริง)
             </h4>
             <p class="text-xs text-amber-800 mt-0.5 leading-relaxed">
-              สถิติและทะเบียนการตรวจทั้งหมดเป็น 0 รายการ และถูกบันทึกใน localStorage เรียบร้อยแล้ว ท่านสามารถเริ่มกดปุ่ม "เพิ่มผลตรวจใหม่" หรือคลิกปุ่มด้านขวาเพื่อโหลดข้อมูลตัวอย่างจริง 16 อำเภอของสงขลา
+              สถิติและทะเบียนการตรวจทั้งหมดเป็น 0 แห่ง เมื่อท่านกด "เพิ่มผลตรวจใหม่" ระบบจะบันทึกข้อมูลเข้าสู่ localStorage ทันที หรือหากต้องการดูการทำงานตัวอย่าง ให้คลิก "โหลดข้อมูลตัวอย่าง"
             </p>
           </div>
         </div>
-        <button onclick="loadRealData()" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 shrink-0 min-h-[40px]">
-          <i data-lucide="database" class="w-4 h-4"></i>
-          <span>โหลดข้อมูลตัวอย่างจริง</span>
-        </button>
+        <div class="flex items-center gap-2 shrink-0">
+          <button onclick="loadMockData()" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 min-h-[38px]">
+            <i data-lucide="database" class="w-4 h-4"></i>
+            <span>โหลดข้อมูลตัวอย่าง</span>
+          </button>
+          <button onclick="openModal()" class="px-3.5 py-2 bg-blue-700 hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 min-h-[38px]">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>เพิ่มผลตรวจแรก</span>
+          </button>
+        </div>
       </div>
 
       <!-- Hero Summary Banner -->
@@ -175,17 +223,17 @@
             </p>
           </div>
           <div class="flex flex-wrap items-center gap-2.5">
-            <button onclick="loadRealData()" class="px-3.5 py-2.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 active:bg-emerald-700 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all">
-              <i data-lucide="database" class="w-4 h-4 text-emerald-200"></i>
-              <span>โหลดข้อมูลตัวอย่างจริง</span>
+            <button onclick="activateRealDataMode()" class="px-3.5 py-2.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 active:bg-emerald-700 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all">
+              <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-200"></i>
+              <span>โหมดข้อมูลจริง</span>
             </button>
-            <button onclick="resetToZero()" class="px-3 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/40 border border-rose-400/30 text-rose-200 text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition-all">
-              <i data-lucide="rotate-ccw" class="w-4 h-4 text-rose-300"></i>
+            <button onclick="loadMockData()" class="px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/15 border border-white/20 text-white text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-1.5 shadow-xs">
+              <i data-lucide="database" class="w-4 h-4 text-blue-400"></i>
+              <span>โหลดข้อมูลตัวอย่าง</span>
+            </button>
+            <button onclick="masterResetToZero()" class="px-3 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/40 border border-rose-400/30 text-rose-200 text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition-all">
+              <i data-lucide="trash-2" class="w-4 h-4 text-rose-300"></i>
               <span>รีเซ็ตเป็น 0</span>
-            </button>
-            <button onclick="switchTab('analytics')" class="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/15 border border-white/20 text-white text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-1.5 shadow-xs">
-              <i data-lucide="bar-chart-2" class="w-4 h-4 text-amber-400"></i>
-              <span>ดูกราฟสถิติ</span>
             </button>
             <button onclick="openModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 text-white text-xs font-semibold shadow-md transition-all flex items-center gap-2">
               <i data-lucide="plus" class="w-4 h-4"></i>
@@ -270,7 +318,7 @@
         </div>
       </div>
 
-      <!-- Songkhla 16 Districts Interactive Distribution Grid -->
+      <!-- Songkhla 16 Districts Interactive Grid -->
       <div class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
@@ -281,9 +329,7 @@
           </div>
           <span class="text-xs text-slate-400 hidden sm:inline">คลิกที่อำเภอเพื่อกรองข้อมูลในตารางทันที</span>
         </div>
-        <div id="districtsGrid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
-          <!-- Populated by JavaScript -->
-        </div>
+        <div id="districtsGrid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5"></div>
       </div>
     </section>
 
@@ -329,9 +375,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-100">
           <div>
             <label class="text-[11px] font-semibold text-slate-500 block mb-1">พื้นที่อำเภอ:</label>
-            <select id="filterDistrict" onchange="renderTable()" class="w-full py-2 px-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[38px]">
-              <!-- Options loaded dynamically -->
-            </select>
+            <select id="filterDistrict" onchange="renderTable()" class="w-full py-2 px-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[38px]"></select>
           </div>
           <div>
             <label class="text-[11px] font-semibold text-slate-500 block mb-1">ประเภทกิจการ:</label>
@@ -372,17 +416,13 @@
                 <th class="py-3 px-4 text-right">จัดการ</th>
               </tr>
             </thead>
-            <tbody id="recordsTableBody" class="divide-y divide-slate-100 text-slate-800">
-              <!-- Populated by JavaScript -->
-            </tbody>
+            <tbody id="recordsTableBody" class="divide-y divide-slate-100 text-slate-800"></tbody>
           </table>
         </div>
       </div>
 
       <!-- Touch-Friendly Cards View (Mobile & Tablet) -->
-      <div id="container-cards" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        <!-- Populated by JavaScript -->
-      </div>
+      <div id="container-cards" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
     </section>
 
     <!-- ================= TAB 3: ANALYTICS CHARTS ================= -->
@@ -390,12 +430,10 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Business Types Distribution Chart -->
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="font-bold text-slate-900 font-heading text-sm flex items-center gap-2">
-              <i data-lucide="pie-chart" class="w-4 h-4 text-blue-700"></i>
-              สัดส่วนประเภทกิจการที่ตรวจ (Business Types)
-            </h3>
-          </div>
+          <h3 class="font-bold text-slate-900 font-heading text-sm flex items-center gap-2">
+            <i data-lucide="pie-chart" class="w-4 h-4 text-blue-700"></i>
+            สัดส่วนประเภทกิจการที่ตรวจ (Business Types)
+          </h3>
           <div class="h-64 relative flex items-center justify-center">
             <canvas id="chartDonut"></canvas>
           </div>
@@ -403,12 +441,10 @@
 
         <!-- 16 Districts Bar Chart -->
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="font-bold text-slate-900 font-heading text-sm flex items-center gap-2">
-              <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-700"></i>
-              จำนวนสถานประกอบการจำแนก 16 อำเภอ
-            </h3>
-          </div>
+          <h3 class="font-bold text-slate-900 font-heading text-sm flex items-center gap-2">
+            <i data-lucide="bar-chart-2" class="w-4 h-4 text-indigo-700"></i>
+            จำนวนสถานประกอบการจำแนก 16 อำเภอ
+          </h3>
           <div class="h-64 relative flex items-center justify-center">
             <canvas id="chartBar"></canvas>
           </div>
@@ -429,9 +465,7 @@
 
       <div class="bg-white border border-slate-200 rounded-2xl p-8 sm:p-12 shadow-xs space-y-6 print:border-none print:shadow-none print:p-0">
         <div class="text-center pb-4 border-b border-slate-300">
-          <div class="w-14 h-14 mx-auto mb-2 rounded-full bg-blue-900 text-amber-300 flex items-center justify-center font-bold text-xl">
-            สข
-          </div>
+          <div class="w-14 h-14 mx-auto mb-2 rounded-full bg-blue-900 text-amber-300 flex items-center justify-center font-bold text-xl">สข</div>
           <h2 class="text-xl font-bold text-slate-900 font-heading">
             รายงานผลการจัดระเบียบสังคมและตรวจสอบสถานบริการ โรงแรม และกิจการควบคุม
           </h2>
@@ -442,10 +476,7 @@
             กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา ศาลากลางจังหวัดสงขลา
           </div>
         </div>
-
-        <div id="reportSummaryContent" class="text-xs sm:text-sm text-slate-800 leading-relaxed space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <!-- Populated dynamically -->
-        </div>
+        <div id="reportSummaryContent" class="text-xs sm:text-sm text-slate-800 leading-relaxed space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200"></div>
       </div>
     </section>
 
@@ -459,21 +490,17 @@
           </h3>
           <span class="text-xs text-slate-400">บันทึกลง localStorage อัตโนมัติ</span>
         </div>
-        <div id="auditLogList" class="divide-y divide-slate-100 text-xs">
-          <!-- Populated by JavaScript -->
-        </div>
+        <div id="auditLogList" class="divide-y divide-slate-100 text-xs"></div>
       </div>
     </section>
 
   </main>
 
-  <!-- MODAL: ADD / EDIT RECORD -->
+  <!-- ================= ADD/EDIT RECORD MODAL ================= -->
   <div id="recordModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[92vh] my-auto">
       <div class="bg-slate-900 text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
-        <h3 id="modalTitle" class="font-bold text-base font-heading">
-          บันทึกผลการตรวจใหม่ (Songkhla SecureTrack)
-        </h3>
+        <h3 id="modalTitle" class="font-bold text-base font-heading">บันทึกผลการตรวจใหม่ (Songkhla SecureTrack)</h3>
         <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
@@ -481,12 +508,10 @@
 
       <form id="recordForm" onsubmit="handleFormSubmit(event)" class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 text-xs">
         <input type="hidden" id="formEditingId" value="" />
-
         <div>
           <label class="block font-bold text-slate-700 mb-1">ชื่อสถานประกอบการ / ร้าน <span class="text-rose-500">*</span></label>
           <input type="text" id="formVenueName" required placeholder="เช่น ซาวด์บาร์ หาดใหญ่, โรงแรม ด่านนอก การ์เดน" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-500 text-sm" />
         </div>
-
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block font-bold text-slate-700 mb-1">เลขที่ใบอนุญาต <span class="text-rose-500">*</span></label>
@@ -502,13 +527,10 @@
             </select>
           </div>
         </div>
-
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block font-bold text-slate-700 mb-1">อำเภอ (จ.สงขลา) <span class="text-rose-500">*</span></label>
-            <select id="formDistrict" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-              <!-- Populated dynamically with 16 Songkhla districts -->
-            </select>
+            <select id="formDistrict" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs"></select>
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1">ผลการตรวจสอบ <span class="text-rose-500">*</span></label>
@@ -520,7 +542,6 @@
             </select>
           </div>
         </div>
-
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block font-bold text-slate-700 mb-1">มาตรการทางกฎหมาย</label>
@@ -538,23 +559,21 @@
             <input type="text" id="formOfficer" value="นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
           </div>
         </div>
-
         <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
-          <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-100 min-h-[40px]">
-            ยกเลิก
-          </button>
-          <button type="submit" class="px-5 py-2 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl shadow-md min-h-[40px]">
-            บันทึกข้อมูล
-          </button>
+          <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-100 min-h-[40px]">ยกเลิก</button>
+          <button type="submit" class="px-5 py-2 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl shadow-md min-h-[40px]">บันทึกข้อมูล</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- JAVASCRIPT: DATA MANAGEMENT & CORE LOGIC -->
+  <!-- ================= 4. JAVASCRIPT: 3 DATA SECTIONS & CORE LOGIC ================= -->
   <script>
-    const STORAGE_KEY = 'songkhla_securetrack_records_v1';
-    const AUDIT_KEY = 'songkhla_securetrack_logs_v1';
+    // Storage Keys
+    const KEY_REAL_DATA = 'songkhla_securetrack_real_records_v1';
+    const KEY_MOCK_DATA = 'songkhla_securetrack_mock_records_v1';
+    const KEY_ACTIVE_MODE = 'songkhla_securetrack_active_mode_v1';
+    const KEY_AUDIT_LOGS = 'songkhla_securetrack_audit_logs_v1';
 
     const DISTRICTS = [
       'อำเภอเมืองสงขลา', 'อำเภอหาดใหญ่', 'อำเภอสะเดา', 'อำเภอสิงหนคร',
@@ -563,256 +582,176 @@
       'อำเภอบางกล่ำ', 'อำเภอควนเนียง', 'อำเภอนาหม่อม', 'อำเภอคลองหอยโข่ง'
     ];
 
-    const REAL_MOCK_DATA = [
-      {
-        id: 'REC-2568-101',
-        venueName: 'เดอะ ซาวด์บาร์ หาดใหญ่ (The Sound Bar)',
-        licenseNumber: 'สข 04/2566',
-        businessType: 'similar_entertainment',
-        district: 'อำเภอหาดใหญ่',
-        subDistrict: 'หาดใหญ่',
-        lastInspectionDate: '2026-10-18',
-        inspectionStatus: 'suspended',
-        legalAction: 'closed_order_22',
-        officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)'
-      },
-      {
-        id: 'REC-2568-102',
-        venueName: 'โรงแรม แกรนด์ พาราดิโซ ด่านนอก',
-        licenseNumber: 'ร.ร. 12/2565',
-        businessType: 'hotel',
-        district: 'อำเภอสะเดา',
-        subDistrict: 'สำนักขาม',
-        lastInspectionDate: '2026-10-15',
-        inspectionStatus: 'normal',
-        legalAction: 'none',
-        officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)'
-      },
-      {
-        id: 'REC-2568-103',
-        venueName: 'ร้านนั่งชิลล์ บาร์แอนด์บิสโทร ชลาทัศน์',
-        licenseNumber: 'อยู่ระหว่างยื่นขอ',
-        businessType: 'similar_entertainment',
-        district: 'อำเภอเมืองสงขลา',
-        subDistrict: 'บ่อยาง',
-        lastInspectionDate: '2026-10-14',
-        inspectionStatus: 'violation',
-        legalAction: 'rectify_ordered',
-        officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)'
-      },
-      {
-        id: 'REC-2568-104',
-        venueName: 'ร้านทรัพย์อนันต์ รีไซเคิล (รับซื้อของเก่า)',
-        licenseNumber: 'ข.ก. 09/2567',
-        businessType: 'controlled',
-        district: 'อำเภอสิงหนคร',
-        subDistrict: 'สทิงหม้อ',
-        lastInspectionDate: '2026-10-12',
-        inspectionStatus: 'normal',
-        legalAction: 'none',
-        officerName: 'ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)'
-      },
-      {
-        id: 'REC-2568-105',
-        venueName: 'จะนะ ริเวอร์ไซด์ รีสอร์ท',
-        licenseNumber: 'ร.ร. 08/2566',
-        businessType: 'hotel',
-        district: 'อำเภอจะนะ',
-        subDistrict: 'บ้านนา',
-        lastInspectionDate: '2026-10-10',
-        inspectionStatus: 'normal',
-        legalAction: 'none',
-        officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)'
-      },
-      {
-        id: 'REC-2568-106',
-        venueName: 'รัตภูมิ การค้า & คลังวัสดุ',
-        licenseNumber: 'อส 15/2567',
-        businessType: 'controlled',
-        district: 'อำเภอรัตภูมิ',
-        subDistrict: 'กำแพงเพชร',
-        lastInspectionDate: '2026-10-08',
-        inspectionStatus: 'pending_followup',
-        legalAction: 'warned',
-        officerName: 'ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)'
-      },
-      {
-        id: 'REC-2568-107',
-        venueName: 'สะบ้าย้อย เกสต์เฮาส์',
-        licenseNumber: 'ร.ร. 03/2567',
-        businessType: 'hotel',
-        district: 'อำเภอสะบ้าย้อย',
-        subDistrict: 'สะบ้าย้อย',
-        lastInspectionDate: '2026-10-06',
-        inspectionStatus: 'normal',
-        legalAction: 'none',
-        officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)'
-      },
-      {
-        id: 'REC-2568-108',
-        venueName: 'ระโนด ซีฟู้ด แอนด์ เลาจน์',
-        licenseNumber: 'สข 09/2566',
-        businessType: 'similar_entertainment',
-        district: 'อำเภอระโนด',
-        subDistrict: 'ระโนด',
-        lastInspectionDate: '2026-10-05',
-        inspectionStatus: 'violation',
-        legalAction: 'police_case',
-        officerName: 'ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)'
-      },
-      {
-        id: 'REC-2568-109',
-        venueName: 'คลับ 99 เอนเตอร์เทนเมนต์ หาดใหญ่',
-        licenseNumber: 'สข 01/2566',
-        businessType: 'entertainment',
-        district: 'อำเภอหาดใหญ่',
-        subDistrict: 'คอหงส์',
-        lastInspectionDate: '2026-10-04',
-        inspectionStatus: 'normal',
-        legalAction: 'none',
-        officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)'
-      },
-      {
-        id: 'REC-2568-110',
-        venueName: 'นาทวี บิลเลียด & คาเฟ่',
-        licenseNumber: 'สข 18/2566',
-        businessType: 'similar_entertainment',
-        district: 'อำเภอนาทวี',
-        subDistrict: 'นาทวี',
-        lastInspectionDate: '2026-10-02',
-        inspectionStatus: 'normal',
-        legalAction: 'none',
-        officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)'
-      },
-      {
-        id: 'REC-2568-111',
-        venueName: 'เทพา บีช รีสอร์ท',
-        licenseNumber: 'ร.ร. 05/2565',
-        businessType: 'hotel',
-        district: 'อำเภอเทพา',
-        subDistrict: 'ปากบาง',
-        lastInspectionDate: '2026-09-28',
-        inspectionStatus: 'normal',
-        legalAction: 'none',
-        officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)'
-      },
-      {
-        id: 'REC-2568-112',
-        venueName: 'สทิงพระ ไนท์ สเตชัน',
-        licenseNumber: 'สข 11/2567',
-        businessType: 'similar_entertainment',
-        district: 'อำเภอสทิงพระ',
-        subDistrict: 'จะทิ้งพระ',
-        lastInspectionDate: '2026-09-25',
-        inspectionStatus: 'pending_followup',
-        legalAction: 'warned',
-        officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)'
-      }
+    // Rich Sample Mock Data (12 venue records covering Songkhla's 16 districts)
+    const DEFAULT_MOCK_DATA = [
+      { id: 'REC-2568-101', venueName: 'เดอะ ซาวด์บาร์ หาดใหญ่ (The Sound Bar)', licenseNumber: 'สข 04/2566', businessType: 'similar_entertainment', district: 'อำเภอหาดใหญ่', subDistrict: 'หาดใหญ่', lastInspectionDate: '2026-10-18', inspectionStatus: 'suspended', legalAction: 'closed_order_22', officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)' },
+      { id: 'REC-2568-102', venueName: 'โรงแรม แกรนด์ พาราดิโซ ด่านนอก', licenseNumber: 'ร.ร. 12/2565', businessType: 'hotel', district: 'อำเภอสะเดา', subDistrict: 'สำนักขาม', lastInspectionDate: '2026-10-15', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)' },
+      { id: 'REC-2568-103', venueName: 'ร้านนั่งชิลล์ บาร์แอนด์บิสโทร ชลาทัศน์', licenseNumber: 'อยู่ระหว่างยื่นขอ', businessType: 'similar_entertainment', district: 'อำเภอเมืองสงขลา', subDistrict: 'บ่อยาง', lastInspectionDate: '2026-10-14', inspectionStatus: 'violation', legalAction: 'rectify_ordered', officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)' },
+      { id: 'REC-2568-104', venueName: 'ร้านทรัพย์อนันต์ รีไซเคิล (รับซื้อของเก่า)', licenseNumber: 'ข.ก. 09/2567', businessType: 'controlled', district: 'อำเภอสิงหนคร', subDistrict: 'สทิงหม้อ', lastInspectionDate: '2026-10-12', inspectionStatus: 'normal', legalAction: 'none', officerName: 'ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)' },
+      { id: 'REC-2568-105', venueName: 'จะนะ ริเวอร์ไซด์ รีสอร์ท', licenseNumber: 'ร.ร. 08/2566', businessType: 'hotel', district: 'อำเภอจะนะ', subDistrict: 'บ้านนา', lastInspectionDate: '2026-10-10', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)' },
+      { id: 'REC-2568-106', venueName: 'รัตภูมิ การค้า & คลังวัสดุ', licenseNumber: 'อส 15/2567', businessType: 'controlled', district: 'อำเภอรัตภูมิ', subDistrict: 'กำแพงเพชร', lastInspectionDate: '2026-10-08', inspectionStatus: 'pending_followup', legalAction: 'warned', officerName: 'ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)' },
+      { id: 'REC-2568-107', venueName: 'สะบ้าย้อย เกสต์เฮาส์', licenseNumber: 'ร.ร. 03/2567', businessType: 'hotel', district: 'อำเภอสะบ้าย้อย', subDistrict: 'สะบ้าย้อย', lastInspectionDate: '2026-10-06', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)' },
+      { id: 'REC-2568-108', venueName: 'ระโนด ซีฟู้ด แอนด์ เลาจน์', licenseNumber: 'สข 09/2566', businessType: 'similar_entertainment', district: 'อำเภอระโนด', subDistrict: 'ระโนด', lastInspectionDate: '2026-10-05', inspectionStatus: 'violation', legalAction: 'police_case', officerName: 'ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)' },
+      { id: 'REC-2568-109', venueName: 'คลับ 99 เอนเตอร์เทนเมนต์ หาดใหญ่', licenseNumber: 'สข 01/2566', businessType: 'entertainment', district: 'อำเภอหาดใหญ่', subDistrict: 'คอหงส์', lastInspectionDate: '2026-10-04', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)' },
+      { id: 'REC-2568-110', venueName: 'นาทวี บิลเลียด & คาเฟ่', licenseNumber: 'สข 18/2566', businessType: 'similar_entertainment', district: 'อำเภอนาทวี', subDistrict: 'นาทวี', lastInspectionDate: '2026-10-02', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)' },
+      { id: 'REC-2568-111', venueName: 'เทพา บีช รีสอร์ท', licenseNumber: 'ร.ร. 05/2565', businessType: 'hotel', district: 'อำเภอเทพา', subDistrict: 'ปากบาง', lastInspectionDate: '2026-09-28', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)' },
+      { id: 'REC-2568-112', venueName: 'สทิงพระ ไนท์ สเตชัน', licenseNumber: 'สข 11/2567', businessType: 'similar_entertainment', district: 'อำเภอสทิงพระ', subDistrict: 'จะทิ้งพระ', lastInspectionDate: '2026-09-25', inspectionStatus: 'pending_followup', legalAction: 'warned', officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)' }
     ];
 
+    // Global Reactive States
+    let currentMode = 'mock'; // 'mock' or 'real'
     let records = [];
     let auditLogs = [];
     let currentViewMode = 'table';
 
-    // 1. DATA PERSISTENCE & INITIALIZATION LOGIC
-    function loadData() {
+    // -------------------------------------------------------------
+    // SECTION 1: INITIAL LOAD & MOCK DATA (First Time Visitor)
+    // -------------------------------------------------------------
+    function loadInitialAppState() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw !== null) {
-          // Key exists in localStorage (could be [] if user reset to 0, or populated array)
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) {
-            records = parsed;
+        const savedMode = localStorage.getItem(KEY_ACTIVE_MODE);
+        
+        if (savedMode === 'real') {
+          // User was in Real Data Mode
+          currentMode = 'real';
+          const savedReal = localStorage.getItem(KEY_REAL_DATA);
+          if (savedReal !== null) {
+            records = JSON.parse(savedReal);
           } else {
-            records = [...REAL_MOCK_DATA];
-            saveRecords();
+            records = [];
           }
         } else {
-          // Very first visit ever: initialize with real mock data
-          records = [...REAL_MOCK_DATA];
-          saveRecords();
+          // Default or Saved as Mock
+          currentMode = 'mock';
+          const savedMock = localStorage.getItem(KEY_MOCK_DATA);
+          if (savedMock !== null) {
+            records = JSON.parse(savedMock);
+          } else {
+            // Very first time visitor: Load rich mock data!
+            records = JSON.parse(JSON.stringify(DEFAULT_MOCK_DATA));
+            localStorage.setItem(KEY_MOCK_DATA, JSON.stringify(records));
+            localStorage.setItem(KEY_ACTIVE_MODE, 'mock');
+          }
         }
 
-        const rawAudit = localStorage.getItem(AUDIT_KEY);
-        if (rawAudit !== null) {
-          const parsedAudit = JSON.parse(rawAudit);
-          if (Array.isArray(parsedAudit)) {
-            auditLogs = parsedAudit;
-          } else {
-            initDefaultAudit();
-          }
+        // Audit logs
+        const savedAudit = localStorage.getItem(KEY_AUDIT_LOGS);
+        if (savedAudit) {
+          auditLogs = JSON.parse(savedAudit);
         } else {
-          initDefaultAudit();
+          auditLogs = [
+            { id: 'LOG-INIT', time: new Date().toLocaleString('th-TH'), officer: 'ระบบอัตโนมัติ', action: 'เริ่มต้นระบบ Songkhla SecureTrack (16 อำเภอ)' }
+          ];
+          localStorage.setItem(KEY_AUDIT_LOGS, JSON.stringify(auditLogs));
         }
       } catch (err) {
-        console.error('Error loading data from localStorage:', err);
-        records = [...REAL_MOCK_DATA];
+        console.error('Initialization error:', err);
+        currentMode = 'mock';
+        records = JSON.parse(JSON.stringify(DEFAULT_MOCK_DATA));
       }
     }
 
-    function initDefaultAudit() {
-      auditLogs = [
-        { id: 'LOG-1', time: new Date().toLocaleString('th-TH'), officer: 'นายสมชาย มั่นคง (ปลัดอำเภอ)', action: 'ระบบเริ่มต้นฐานข้อมูล Songkhla SecureTrack (16 อำเภอ)' }
-      ];
-      saveAudit();
+    // Function to reload Mock Data at any time
+    function loadMockData() {
+      currentMode = 'mock';
+      records = JSON.parse(JSON.stringify(DEFAULT_MOCK_DATA));
+      localStorage.setItem(KEY_MOCK_DATA, JSON.stringify(records));
+      localStorage.setItem(KEY_ACTIVE_MODE, 'mock');
+      
+      addAuditLog('สลับเข้าสู่โหมดข้อมูลตัวอย่าง (Mock Data) และโหลดชุดข้อมูล 16 อำเภอ');
+      updateAllUI();
+      alert('โหลดข้อมูลตัวอย่าง 16 อำเภอของสงขลาเรียบร้อยแล้ว (กำลังทำงานในโหมดข้อมูลตัวอย่าง)');
     }
 
-    function saveRecords() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-      } catch (e) {
-        console.error('Failed to save records to localStorage:', e);
-      }
-    }
+    // -------------------------------------------------------------
+    // SECTION 2: REAL DATA MODE & AUTO-SAVE (Starting from 0)
+    // -------------------------------------------------------------
+    function activateRealDataMode() {
+      currentMode = 'real';
+      localStorage.setItem(KEY_ACTIVE_MODE, 'real');
 
-    function saveAudit() {
-      try {
-        localStorage.setItem(AUDIT_KEY, JSON.stringify(auditLogs));
-      } catch (e) {
-        console.error('Failed to save audit logs:', e);
-      }
-    }
-
-    // 2. CRUCIAL REQUIREMENTS: RESET TO 0 & LOAD REAL DATA
-    function resetToZero() {
-      const confirmReset = confirm(
-        'ยืนยันการ "รีเซ็ตข้อมูลเป็น 0 (Reset Data)" หรือไม่?\n\n*ข้อควรทราบ: ข้อมูลสถานประกอบการทั้งหมดจะถูกล้างเป็น 0 แห่ง และสถิติทั้งหมดจะกลายเป็น 0 โดยบันทึกลง localStorage ทันที (ท่านสามารถกดปุ่ม "โหลดข้อมูลตัวอย่างจริง" เพื่อดึงข้อมูลกลับมาได้ทุกเมื่อ)'
-      );
-      if (confirmReset) {
+      // Check if user already has saved real records
+      const savedReal = localStorage.getItem(KEY_REAL_DATA);
+      if (savedReal !== null) {
+        try {
+          records = JSON.parse(savedReal);
+        } catch (e) {
+          records = [];
+        }
+      } else {
+        // Starts Fresh from 0!
         records = [];
-        saveRecords();
+        localStorage.setItem(KEY_REAL_DATA, JSON.stringify([]));
+      }
 
-        auditLogs.unshift({
-          id: 'LOG-' + Date.now(),
-          time: new Date().toLocaleString('th-TH'),
-          officer: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
-          action: 'รีเซ็ตข้อมูลระบบเป็น 0 (Reset Data) สำเร็จ'
-        });
-        saveAudit();
+      addAuditLog('เปิดใช้งาน "โหมดข้อมูลจริง (Real Data Mode)" พร้อมระบบบันทึกอัตโนมัติ');
+      updateAllUI();
+      
+      alert(
+        'สลับเข้าสู่ "โหมดข้อมูลจริง / เริ่มต้นใหม่" เรียบร้อยแล้ว!\n\n' +
+        '• เริ่มต้นจากข้อมูลจริง (ปัจจุบันมี ' + records.length + ' รายการ)\n' +
+        '• ทุกรายการที่ท่านเพิ่ม/แก้ไข จะถูกบันทึกอัตโนมัติลงในเบราว์เซอร์ (Auto-Save)\n' +
+        '• เมื่อกดรีเฟรช (F5) ข้อมูลจริงที่ท่านกรอกจะไม่สูญหาย 100%'
+      );
+    }
 
+    // Auto-save logic dynamically saving to the active storage key
+    function autoSaveRecords() {
+      try {
+        const key = (currentMode === 'real') ? KEY_REAL_DATA : KEY_MOCK_DATA;
+        localStorage.setItem(key, JSON.stringify(records));
+        localStorage.setItem(KEY_ACTIVE_MODE, currentMode);
+      } catch (e) {
+        console.error('Auto-save error:', e);
+      }
+    }
+
+    function autoSaveAudit() {
+      try {
+        localStorage.setItem(KEY_AUDIT_LOGS, JSON.stringify(auditLogs));
+      } catch (e) {
+        console.error('Audit save error:', e);
+      }
+    }
+
+    function addAuditLog(actionText, officer = 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)') {
+      auditLogs.unshift({
+        id: 'LOG-' + Date.now(),
+        time: new Date().toLocaleString('th-TH'),
+        officer: officer,
+        action: actionText
+      });
+      autoSaveAudit();
+    }
+
+    // -------------------------------------------------------------
+    // SECTION 3: MASTER RESET BUTTON (Reset All to 0)
+    // -------------------------------------------------------------
+    function masterResetToZero() {
+      const confirmed = confirm(
+        '⚠️ ยืนยันการ "รีเซ็ตข้อมูลเป็น 0 (Reset All to 0)" หรือไม่?\n\n' +
+        '• ข้อมูลการตรวจทั้งหมดจะถูกล้างเป็น 0 รายการทันที\n' +
+        '• สถิติทุกอำเภอและกราฟจะกลายเป็น 0 ทั้งหมด\n' +
+        '• บันทึกการเคลียร์ข้อมูลลงใน localStorage โดยตรง\n\n' +
+        '(ท่านสามารถคลิก "โหลดข้อมูลตัวอย่าง" หรือ "เพิ่มผลตรวจใหม่" ได้ทุกเมื่อ)'
+      );
+
+      if (confirmed) {
+        records = [];
+        autoSaveRecords();
+
+        addAuditLog('ดำเนินการ "รีเซ็ตข้อมูลเป็น 0 (Reset All to 0)" ล้างข้อมูลทั้งหมดในระบบ');
         updateAllUI();
+        
         alert('รีเซ็ตข้อมูลสถานประกอบการและสถิติทั้งหมดเป็น 0 แห่งเรียบร้อยแล้ว');
       }
     }
 
-    function loadRealData() {
-      records = JSON.parse(JSON.stringify(REAL_MOCK_DATA));
-      saveRecords();
-
-      auditLogs.unshift({
-        id: 'LOG-' + Date.now(),
-        time: new Date().toLocaleString('th-TH'),
-        officer: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
-        action: 'โหลดข้อมูลตัวอย่างจริงของ 16 อำเภอในจังหวัดสงขลา (12 แห่ง)'
-      });
-      saveAudit();
-
-      updateAllUI();
-      alert('โหลดข้อมูลตัวอย่างจริงของ 16 อำเภอในสงขลา (12 แห่ง) เรียบร้อยแล้ว ข้อมูลบันทึกลง localStorage ทันที');
-    }
-
-    // 3. UI RENDERING FUNCTIONS
+    // -------------------------------------------------------------
+    // UI UPDATES & REACTIVITY ENGINE
+    // -------------------------------------------------------------
     function updateAllUI() {
+      updateModeVisuals();
       renderKPIs();
       renderDistrictsGrid();
       renderTable();
@@ -820,6 +759,63 @@
       renderReport();
       if (typeof initCharts === 'function') {
         initCharts();
+      }
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    function updateModeVisuals() {
+      const badge = document.getElementById('activeModeBadge');
+      const badgeText = document.getElementById('activeModeText');
+      const banner = document.getElementById('modeNotificationBanner');
+      const bannerTitle = document.getElementById('modeBannerTitle');
+      const bannerDesc = document.getElementById('modeBannerDesc');
+      const bannerIcon = document.getElementById('modeBannerIcon');
+      const bannerAction = document.getElementById('modeBannerActionBtn');
+      const btnReal = document.getElementById('btnRealDataMode');
+      const btnMock = document.getElementById('btnLoadMockData');
+
+      if (currentMode === 'real') {
+        // Real Data Mode Active
+        if (badge) badge.className = 'px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-600/70 text-[10px] font-semibold flex items-center gap-1.5 shadow-xs';
+        if (badgeText) badgeText.innerText = 'โหมดข้อมูลจริง (Real Data)';
+
+        if (banner) {
+          banner.className = 'p-3.5 sm:p-4 rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-900 flex items-center justify-between gap-3 text-xs sm:text-sm transition-all shadow-xs';
+        }
+        if (bannerIcon) bannerIcon.className = 'w-7 h-7 rounded-xl bg-emerald-200 text-emerald-800 flex items-center justify-center shrink-0';
+        if (bannerTitle) bannerTitle.innerText = 'กำลังทำงานใน: โหมดข้อมูลจริง (Real Data Mode) · บันทึกอัตโนมัติ';
+        if (bannerDesc) bannerDesc.innerText = 'ข้อมูลสถานประกอบการที่ท่านเพิ่ม/แก้ไขจะถูกบันทึกถาวรลงในเบราว์เซอร์อัตโนมัติ (รีเฟรช F5 ไม่หาย) ปัจจุบันมี ' + records.length + ' รายการ';
+        
+        if (bannerAction) {
+          bannerAction.className = 'px-3 py-1.5 bg-white text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold hover:bg-emerald-100 shadow-2xs';
+          bannerAction.innerText = 'โหลดข้อมูลตัวอย่าง';
+          bannerAction.onclick = loadMockData;
+        }
+
+        if (btnReal) btnReal.className = 'px-3 py-2 bg-emerald-700 ring-2 ring-emerald-400 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm flex items-center gap-1.5 min-h-[40px] whitespace-nowrap';
+        if (btnMock) btnMock.className = 'px-2.5 sm:px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs sm:text-sm font-medium shadow-xs flex items-center gap-1.5 min-h-[40px] whitespace-nowrap';
+      } else {
+        // Mock Data Mode Active
+        if (badge) badge.className = 'px-2.5 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-700/60 text-[10px] font-semibold flex items-center gap-1.5 shadow-xs';
+        if (badgeText) badgeText.innerText = 'โหมดข้อมูลตัวอย่าง (Mock Data)';
+
+        if (banner) {
+          banner.className = 'p-3.5 sm:p-4 rounded-2xl border border-blue-200 bg-blue-50/90 text-blue-950 flex items-center justify-between gap-3 text-xs sm:text-sm transition-all shadow-xs';
+        }
+        if (bannerIcon) bannerIcon.className = 'w-7 h-7 rounded-xl bg-blue-200 text-blue-800 flex items-center justify-center shrink-0';
+        if (bannerTitle) bannerTitle.innerText = 'กำลังทำงานใน: โหมดข้อมูลตัวอย่าง (Mock Data)';
+        if (bannerDesc) bannerDesc.innerText = 'แสดงข้อมูลจำลองสถานบริการ 16 อำเภอของสงขลา ท่านสามารถสลับเข้าสู่โหมดข้อมูลจริงเพื่อเริ่มบันทึกงานจริงจาก 0 ได้ทันที';
+        
+        if (bannerAction) {
+          bannerAction.className = 'px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs';
+          bannerAction.innerText = 'เข้าสู่โหมดข้อมูลจริง';
+          bannerAction.onclick = activateRealDataMode;
+        }
+
+        if (btnReal) btnReal.className = 'px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-1.5 min-h-[40px] whitespace-nowrap';
+        if (btnMock) btnMock.className = 'px-2.5 sm:px-3 py-2 bg-blue-800 ring-2 ring-blue-400 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs flex items-center gap-1.5 min-h-[40px] whitespace-nowrap';
       }
     }
 
@@ -897,7 +893,7 @@
         return true;
       });
 
-      // 1. Render High-Density Desktop Table Body
+      // 1. Desktop High-Density Table
       const tbody = document.getElementById('recordsTableBody');
       if (tbody) {
         tbody.innerHTML = '';
@@ -906,13 +902,12 @@
             <tr>
               <td colspan="8" class="text-center py-10 text-slate-400">
                 <div class="text-sm font-bold text-slate-600">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</div>
-                <div class="text-xs text-slate-400 mt-1">${records.length === 0 ? 'ขณะนี้ฐานข้อมูลมี 0 รายการ (ท่านสามารถกด "โหลดข้อมูลตัวอย่างจริง" หรือ "เพิ่มผลตรวจใหม่")' : 'โปรดลองเปลี่ยนคำค้นหาหรือตัวกรอง'}</div>
+                <div class="text-xs text-slate-400 mt-1">${records.length === 0 ? 'ขณะนี้ฐานข้อมูลมี 0 รายการ (ท่านสามารถกด "เพิ่มผลตรวจใหม่" หรือ "โหลดข้อมูลตัวอย่าง")' : 'โปรดลองเปลี่ยนคำค้นหาหรือตัวกรอง'}</div>
               </td>
             </tr>
           `;
         } else {
           filtered.forEach(r => {
-            const isNorm = r.inspectionStatus === 'normal';
             let statusPill = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">ปกติ</span>`;
             if (r.inspectionStatus === 'violation') {
               statusPill = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800">พบการกระทำผิด</span>`;
@@ -923,7 +918,7 @@
             }
 
             let typeLabel = r.businessType;
-            if (r.businessType === 'entertainment') typeLabel = 'สถานบริการ';
+            if (r.businessType === 'entertainment') typeLabel = 'สถานบริการ (2509)';
             else if (r.businessType === 'similar_entertainment') typeLabel = 'คล้ายสถานบริการ';
             else if (r.businessType === 'hotel') typeLabel = 'โรงแรม / ที่พัก';
             else if (r.businessType === 'controlled') typeLabel = 'กิจการควบคุม';
@@ -950,7 +945,7 @@
         }
       }
 
-      // 2. Render Mobile Cards View
+      // 2. Mobile Cards Grid View
       const cCards = document.getElementById('container-cards');
       if (cCards) {
         cCards.innerHTML = '';
@@ -1016,12 +1011,14 @@
       const violCount = records.filter(r => r.inspectionStatus === 'violation' || r.inspectionStatus === 'suspended').length;
       el.innerHTML = `
         <p class="indent-6 text-justify">
-          กราบเรียน ผู้ว่าราชการจังหวัดสงขลา (ผ่าน ปลัดจังหวัดสงขลา): กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา ขอรายงานสรุปผลการจัดระเบียบสังคมและตรวจสอบสถานบริการ โรงแรม และกิจการควบคุม ประจำเดือน ในพื้นที่ 16 อำเภอของจังหวัดสงขลา โดยได้เข้าตรวจสอบสถานประกอบการรวมทั้งสิ้น <strong>${records.length}</strong> แห่ง ผลการตรวจผ่านเกณฑ์มาตรฐานถูกต้อง <strong>${normalCount}</strong> แห่ง และตรวจพบการกระทำผิดหรือไม่ปฏิบัติตามมาตรฐาน <strong>${violCount}</strong> แห่ง โดยชุดปฏิบัติการพิเศษฝ่ายปกครองได้ดำเนินการตามอำนาจหน้าที่และข้อสั่งการของ คสช. ที่ 22/2558 เรียบร้อยแล้ว
+          กราบเรียน ผู้ว่าราชการจังหวัดสงขลา (ผ่าน ปลัดจังหวัดสงขลา): กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา ขอรายงานสรุปผลการจัดระเบียบสังคมและตรวจสอบสถานบริการ โรงแรม และกิจการควบคุม ประจำเดือน ในพื้นที่ 16 อำเภอของจังหวัดสงขลา (โหมด: ${currentMode === 'real' ? 'ข้อมูลจริงปฏิบัติการ' : 'ข้อมูลทดสอบระบบ'}) โดยได้เข้าตรวจสอบสถานประกอบการรวมทั้งสิ้น <strong>${records.length}</strong> แห่ง ผลการตรวจผ่านเกณฑ์มาตรฐานถูกต้อง <strong>${normalCount}</strong> แห่ง และตรวจพบการกระทำผิดหรือไม่ปฏิบัติตามมาตรฐาน <strong>${violCount}</strong> แห่ง โดยชุดปฏิบัติการพิเศษฝ่ายปกครองได้ดำเนินการตามอำนาจหน้าที่และข้อสั่งการของ คสช. ที่ 22/2558 เรียบร้อยแล้ว
         </p>
       `;
     }
 
-    // 4. CRUD OPERATIONS (ADD, EDIT, DELETE)
+    // -------------------------------------------------------------
+    // CRUD OPERATIONS
+    // -------------------------------------------------------------
     function openModal(editId = '') {
       const modal = document.getElementById('recordModal');
       const titleEl = document.getElementById('modalTitle');
@@ -1064,16 +1061,10 @@
       const target = records.find(r => r.id === id);
       if (confirm(`ยืนยันการลบรายการของ "${target ? target.venueName : id}" หรือไม่?`)) {
         records = records.filter(r => r.id !== id);
-        saveRecords();
+        autoSaveRecords();
 
         if (target) {
-          auditLogs.unshift({
-            id: 'LOG-' + Date.now(),
-            time: new Date().toLocaleString('th-TH'),
-            officer: 'เจ้าหน้าที่กลุ่มงานความมั่นคง',
-            action: 'ลบรายการ: ' + target.venueName
-          });
-          saveAudit();
+          addAuditLog('ลบรายการ: ' + target.venueName);
         }
 
         updateAllUI();
@@ -1097,7 +1088,7 @@
       }
 
       if (editId) {
-        // Edit Mode: Update only that specific record
+        // Edit Isolation: Only update that specific record
         records = records.map(r => {
           if (r.id === editId) {
             return {
@@ -1114,14 +1105,9 @@
           return r;
         });
 
-        auditLogs.unshift({
-          id: 'LOG-' + Date.now(),
-          time: new Date().toLocaleString('th-TH'),
-          officer: vOfficer,
-          action: 'แก้ไขข้อมูล: ' + vName
-        });
+        addAuditLog('แก้ไขข้อมูล: ' + vName, vOfficer);
       } else {
-        // Add Mode: Append new item
+        // Append-Only Logic: Add new record to beginning of list
         const newRec = {
           id: 'REC-' + Math.floor(100 + Math.random() * 900),
           venueName: vName,
@@ -1136,21 +1122,18 @@
         };
         records = [newRec, ...records];
 
-        auditLogs.unshift({
-          id: 'LOG-' + Date.now(),
-          time: new Date().toLocaleString('th-TH'),
-          officer: vOfficer,
-          action: 'เพิ่มบันทึกใหม่: ' + vName
-        });
+        addAuditLog('เพิ่มบันทึกผลการตรวจใหม่: ' + vName, vOfficer);
       }
 
-      saveRecords();
-      saveAudit();
+      // Auto-save immediately to localStorage
+      autoSaveRecords();
       closeModal();
       updateAllUI();
     }
 
-    // 5. HELPER FUNCTIONS
+    // -------------------------------------------------------------
+    // NAVIGATION & UTILITY HELPERS
+    // -------------------------------------------------------------
     function switchTab(tabId) {
       ['dashboard', 'records', 'analytics', 'report', 'audit'].forEach(t => {
         const v = document.getElementById('view-' + t);
@@ -1209,7 +1192,9 @@
       a.click();
     }
 
-    // 6. CHART.JS CHARTS
+    // -------------------------------------------------------------
+    // CHART.JS CHARTS (With Zero-Data Protection)
+    // -------------------------------------------------------------
     let donutChart, barChart;
     function initCharts() {
       if (donutChart) donutChart.destroy();
@@ -1224,13 +1209,14 @@
         const c2 = records.filter(r => r.businessType === 'similar_entertainment').length;
         const c3 = records.filter(r => r.businessType === 'hotel').length;
         const c4 = records.filter(r => r.businessType === 'controlled').length;
+        const sum = c1 + c2 + c3 + c4;
 
         donutChart = new Chart(ctxDonut, {
           type: 'doughnut',
           data: {
             labels: ['สถานบริการ', 'คล้ายสถานบริการ', 'โรงแรม', 'กิจการควบคุม'],
             datasets: [{
-              data: [c1, c2, c3, c4],
+              data: sum > 0 ? [c1, c2, c3, c4] : [0, 0, 0, 0],
               backgroundColor: ['#1d4ed8', '#0284c7', '#6366f1', '#64748b']
             }]
           },
@@ -1262,9 +1248,11 @@
       }
     }
 
-    // 7. INITIAL STARTUP
+    // -------------------------------------------------------------
+    // INITIALIZATION
+    // -------------------------------------------------------------
     function init() {
-      loadData();
+      loadInitialAppState();
 
       // Populate Districts Filter & Modal Form
       const filterDist = document.getElementById('filterDistrict');
@@ -1285,13 +1273,15 @@
       setStandAloneViewMode(currentViewMode);
       updateAllUI();
 
-      // Clock tick
+      // Live Thai Clock Tick
       setInterval(() => {
         const el = document.getElementById('liveClock');
         if (el) el.innerText = new Date().toLocaleString('th-TH');
       }, 1000);
 
-      if (window.lucide) lucide.createIcons();
+      if (window.lucide) {
+        lucide.createIcons();
+      }
     }
 
     window.onload = init;
