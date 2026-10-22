@@ -239,18 +239,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span>รีเซ็ตข้อมูลเป็น 0 (Reset All to 0)</span>
             </button>
           )}
-
-          {/* Direct link to Google Sheets Single-File HTML */}
-          <a
-            href="/songkhla_securetrack.html"
-            target="_blank"
-            rel="noreferrer"
-            className="w-full py-1.5 px-3 rounded-xl border border-emerald-500/30 hover:border-emerald-500/60 bg-emerald-950/30 text-emerald-400 hover:text-emerald-300 text-[11px] font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs"
-            title="เปิดเว็บแอปไฟล์เดี่ยว Google Sheets Real-time Synchronization"
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>เปิดแอป Google Sheets (HTML)</span>
-          </a>
         </div>
       </aside>
     </>

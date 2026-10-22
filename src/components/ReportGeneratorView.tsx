@@ -207,12 +207,12 @@ export const ReportGeneratorView: React.FC<ReportGeneratorViewProps> = ({ record
             href="/songkhla_securetrack.html"
             target="_blank"
             rel="noreferrer"
-            download="Songkhla_SecureTrack_GoogleSheets_Sync.html"
-            className="px-3 py-2 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs"
-            title="เปิดหรือดาวน์โหลดไฟล์ Single-file HTML พร้อมระบบ Real-time Google Sheets Synchronization"
+            download="Songkhla_SecureTrack_ระบบติดตามและตรวจสอบความปลอดภัยและกิจการควบคุม_สงขลา.html"
+            className="px-3 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs"
+            title="ดาวน์โหลดไฟล์ Single-file HTML (Songkhla SecureTrack) พกพาเปิดใช้งานได้ทุกที่ ไม่ต้องต่อเน็ต"
           >
-            <Download className="w-3.5 h-3.5 text-emerald-600" />
-            <span>ดาวน์โหลด HTML (Google Sheets Sync)</span>
+            <Download className="w-3.5 h-3.5 text-indigo-600" />
+            <span>ดาวน์โหลด Single-file HTML</span>
           </a>
 
           <button
