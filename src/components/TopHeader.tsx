@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Plus, Clock, User, Shield, Bell, Database, RotateCcw } from 'lucide-react';
+import { Menu, Plus, Clock, User, Shield, Bell, UploadCloud, DownloadCloud, RefreshCw } from 'lucide-react';
 import { NavTab } from './Sidebar';
 
 interface TopHeaderProps {
@@ -8,11 +8,11 @@ interface TopHeaderProps {
   onOpenAddModal: () => void;
   urgentCount: number;
   onSelectUrgentNotification?: () => void;
-  dataMode?: 'mock' | 'real';
-  onActivateRealDataMode?: () => void;
-  onLoadSampleData?: () => void;
-  onResetToZero?: () => void;
-  onLoadRealData?: () => void;
+  hasUnsyncedChanges?: boolean;
+  isSyncing?: boolean;
+  syncStatus?: 'synced' | 'syncing' | 'error' | 'idle';
+  onPushToSheet: () => void;
+  onPullFromSheet: () => void;
 }
 
 export const TopHeader: React.FC<TopHeaderProps> = ({
@@ -21,11 +21,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onOpenAddModal,
   urgentCount,
   onSelectUrgentNotification,
-  dataMode = 'mock',
-  onActivateRealDataMode,
-  onLoadSampleData,
-  onResetToZero,
-  onLoadRealData,
+  hasUnsyncedChanges = false,
+  isSyncing = false,
+  syncStatus = 'idle',
+  onPushToSheet,
+  onPullFromSheet,
 }) => {
   const [currentDateTime, setCurrentDateTime] = useState('');
 
@@ -105,10 +105,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         </div>
       </div>
 
-      {/* Right: Live Clock, Urgent Notification & Officer Profile */}
-      <div className="flex items-center gap-3 sm:gap-4">
+      {/* Right: Live Clock, Staging Actions, Urgent Notification & Officer Profile */}
+      <div className="flex items-center gap-2 sm:gap-3">
         {/* Live Clock Display (Tabular Numerals) */}
-        <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100/80 border border-slate-200/60 text-xs font-mono text-slate-700 tabular-nums shadow-2xs">
+        <div className="hidden 2xl:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100/80 border border-slate-200/60 text-xs font-mono text-slate-700 tabular-nums shadow-2xs">
           <Clock className="w-3.5 h-3.5 text-blue-700" />
           <span>{currentDateTime}</span>
         </div>
@@ -125,71 +125,66 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </button>
         )}
 
-        {/* Mode Indicator Badge */}
-        {dataMode === 'real' ? (
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-300 text-[11px] font-semibold text-emerald-800">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>โหมดข้อมูลจริง (Auto-Save)</span>
+        {/* Staging Status Indicator Badge */}
+        {hasUnsyncedChanges ? (
+          <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50 border border-amber-300 text-[11px] font-semibold text-amber-900 shadow-2xs animate-pulse">
+            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span>รอส่งขึ้น Google Sheets (ร่างในเครื่อง)</span>
           </div>
         ) : (
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-50 border border-blue-200 text-[11px] font-semibold text-blue-800">
-            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-            <span>โหมดข้อมูลตัวอย่าง</span>
+          <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-300 text-[11px] font-semibold text-emerald-800 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>ซิงค์ตรงกับ Google Sheets แล้ว</span>
           </div>
         )}
 
-        {/* Section 2: Real Data Mode Button */}
-        {(onActivateRealDataMode || onLoadRealData) && (
-          <button
-            onClick={onActivateRealDataMode || onLoadRealData}
-            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition-all shadow-2xs whitespace-nowrap ${
-              dataMode === 'real'
-                ? 'bg-emerald-600 text-white hover:bg-emerald-500 border border-emerald-600 shadow-xs'
-                : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300'
-            }`}
-            title="สลับเข้าสู่โหมดข้อมูลจริง เริ่มต้นจาก 0 รายการ บันทึกอัตโนมัติลง localStorage (F5 ข้อมูลไม่สูญหาย)"
-          >
-            <Database className="w-3.5 h-3.5 text-emerald-600 group-hover:text-white" />
-            <span>โหมดข้อมูลจริง / เริ่มต้นใหม่</span>
-          </button>
-        )}
+        {/* Manual Pull Button: "📥 ดึงข้อมูลจาก Google Sheets (Fetch from Sheet)" */}
+        <button
+          onClick={onPullFromSheet}
+          disabled={isSyncing}
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 border border-slate-300 transition-all shadow-2xs whitespace-nowrap"
+          title="ดึงข้อมูลที่ผ่านการตรวจสอบล่าสุดจาก Google Sheets (SheetDB API) เข้าสู่หน้าจอ"
+        >
+          <DownloadCloud className={`w-3.5 h-3.5 text-blue-700 ${isSyncing ? 'animate-bounce' : ''}`} />
+          <span className="hidden md:inline">📥 ดึงข้อมูลจาก Google Sheets</span>
+          <span className="md:hidden">📥 ดึงข้อมูล</span>
+        </button>
 
-        {/* Section 1: Load Sample Data Button */}
-        {onLoadSampleData && (
-          <button
-            onClick={onLoadSampleData}
-            className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-xl transition-all shadow-2xs whitespace-nowrap"
-            title="โหลดข้อมูลตัวอย่าง 16 อำเภอของสงขลาสำหรับทดสอบระบบ"
-          >
-            <Database className="w-3.5 h-3.5 text-blue-600" />
-            <span>โหลดข้อมูลตัวอย่าง</span>
-          </button>
-        )}
-
-        {/* Section 3: Reset All to 0 Button */}
-        {onResetToZero && (
-          <button
-            onClick={onResetToZero}
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl transition-all shadow-2xs whitespace-nowrap"
-            title="รีเซ็ตข้อมูลเป็น 0 (Reset All to 0) เคลียร์สถิติและ localStorage ทั้งหมด"
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
-            <span>รีเซ็ตข้อมูลเป็น 0</span>
-          </button>
-        )}
+        {/* Manual Push Button: "📤 ส่งข้อมูลขึ้น Google Sheets (Sync to Sheet)" */}
+        <button
+          onClick={onPushToSheet}
+          disabled={isSyncing}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all shadow-xs whitespace-nowrap min-h-[38px] ${
+            hasUnsyncedChanges
+              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white ring-2 ring-emerald-400 ring-offset-1'
+              : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300'
+          }`}
+          title="ซิงค์และส่งข้อมูลสถานประกอบการที่ตรวจสอบร่างไว้ในเครื่องขึ้น Google Sheets ถาวร"
+        >
+          {isSyncing ? (
+            <RefreshCw className="w-3.5 h-3.5 animate-spin text-current" />
+          ) : (
+            <UploadCloud className="w-3.5 h-3.5 text-current" />
+          )}
+          <span className="hidden sm:inline">📤 ส่งข้อมูลขึ้น Google Sheets</span>
+          <span className="sm:hidden">📤 ส่งขึ้นชีต</span>
+          {hasUnsyncedChanges && (
+            <span className="w-2 h-2 rounded-full bg-amber-300 animate-ping"></span>
+          )}
+        </button>
 
         {/* Add Record Primary Button */}
         <button
           onClick={onOpenAddModal}
-          className="flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 active:from-blue-800 active:to-indigo-800 text-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 whitespace-nowrap"
+          className="flex items-center gap-1.5 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 active:from-blue-800 active:to-indigo-800 text-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 whitespace-nowrap min-h-[38px]"
         >
           <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">เพิ่มบันทึกผลการตรวจ</span>
-          <span className="sm:hidden">เพิ่มตรวจ</span>
+          <span className="hidden md:inline">เพิ่มบันทึกผลการตรวจ</span>
+          <span className="md:hidden">เพิ่มตรวจ</span>
         </button>
 
         {/* Officer Profile Badge */}
-        <div className="hidden md:flex items-center gap-2.5 pl-3 border-l border-slate-200">
+        <div className="hidden lg:flex items-center gap-2.5 pl-3 border-l border-slate-200">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-slate-900 to-blue-900 text-amber-300 flex items-center justify-center font-bold text-xs shadow-xs border border-blue-400/20">
             <User className="w-4 h-4" />
           </div>

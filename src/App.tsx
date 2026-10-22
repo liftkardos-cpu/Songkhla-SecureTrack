@@ -23,10 +23,13 @@ import {
   FileSpreadsheet, 
   Plus
 } from 'lucide-react';
+import {
+  fetchSheetDBRecords,
+  pushAllToSheetDB,
+} from './services/sheetDbService';
 
 const STORAGE_KEY_RECORDS = 'songkhla_securetrack_records_v1';
-const STORAGE_KEY_REAL_RECORDS = 'songkhla_securetrack_real_records_v1';
-const STORAGE_KEY_ACTIVE_MODE = 'songkhla_securetrack_active_mode_v1';
+const STORAGE_KEY_UNSYNCED = 'songkhla_securetrack_unsynced_v1';
 const STORAGE_KEY_LOGS = 'songkhla_securetrack_logs_v1';
 
 export default function App() {
@@ -34,32 +37,25 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Active data mode: 'mock' (Section 1) or 'real' (Section 2)
-  const [dataMode, setDataMode] = useState<'mock' | 'real'>(() => {
+  // Staging tracking: Are there unpushed local changes?
+  const [hasUnsyncedChanges, setHasUnsyncedChanges] = useState<boolean>(() => {
     try {
-      const savedMode = localStorage.getItem(STORAGE_KEY_ACTIVE_MODE);
-      if (savedMode === 'real') return 'real';
-    } catch (e) {
-      console.error('Failed to get saved mode:', e);
+      return localStorage.getItem(STORAGE_KEY_UNSYNCED) === 'true';
+    } catch {
+      return false;
     }
-    return 'mock';
   });
 
   // Inspection records list with localStorage persistence
   const [records, setRecords] = useState<InspectionRecord[]>(() => {
     try {
-      const savedMode = localStorage.getItem(STORAGE_KEY_ACTIVE_MODE);
-      const targetKey = savedMode === 'real' ? STORAGE_KEY_REAL_RECORDS : STORAGE_KEY_RECORDS;
-      const saved = localStorage.getItem(targetKey);
-
+      const saved = localStorage.getItem(STORAGE_KEY_RECORDS);
       if (saved !== null) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
           return parsed;
         }
       }
-
-      // Check legacy key if exists
       const legacy = localStorage.getItem('songkhla_security_inspection_records_v2');
       if (legacy !== null) {
         const parsed = JSON.parse(legacy);
@@ -70,8 +66,6 @@ export default function App() {
     } catch (e) {
       console.error('Failed to parse records:', e);
     }
-
-    // Section 1: Default initial mock data for first-time visitors
     return INITIAL_INSPECTION_RECORDS;
   });
 
@@ -106,32 +100,9 @@ export default function App() {
   const [editingRecord, setEditingRecord] = useState<InspectionRecord | null>(null);
   const [viewingRecord, setViewingRecord] = useState<InspectionRecord | null>(null);
 
-  // Sync records and dataMode to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
-      if (dataMode === 'real') {
-        localStorage.setItem(STORAGE_KEY_REAL_RECORDS, JSON.stringify(records));
-      }
-      localStorage.setItem(STORAGE_KEY_ACTIVE_MODE, dataMode);
-    } catch (e) {
-      console.error('Failed to save records:', e);
-    }
-  }, [records, dataMode]);
-
-  // Sync logs to localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs));
-    } catch (e) {
-      console.error('Failed to save logs:', e);
-    }
-  }, [logs]);
-
-  // Count urgent cases (due within 7 days or under active sanction)
-  const urgentCount = records.filter(
-    r => r.inspectionStatus === 'violation' || r.inspectionStatus === 'suspended' || r.inspectionStatus === 'pending_followup'
-  ).length;
+  // SheetDB Google Sheets sync state
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [syncStatus, setSyncStatus] = useState<'synced' | 'syncing' | 'error' | 'idle'>('idle');
 
   // Add audit log helper
   const addAuditLog = (
@@ -155,48 +126,189 @@ export default function App() {
     setLogs(prev => [newLog, ...prev]);
   };
 
-  // Handle Save (Add / Update)
-  const handleSaveRecord = (savedRecord: InspectionRecord) => {
-    setRecords(prev => {
-      const exists = prev.some(r => r.id === savedRecord.id);
-      if (exists) {
-        addAuditLog(
-          'update',
-          'แก้ไขบันทึกผลการตรวจสอบ',
-          savedRecord.id,
-          savedRecord.venueName,
-          savedRecord.officerName,
-          `ปรับปรุงผลการตรวจเป็น ${savedRecord.inspectionStatus} มาตรการ: ${savedRecord.legalAction}`
-        );
-        return prev.map(r => (r.id === savedRecord.id ? savedRecord : r));
-      } else {
-        addAuditLog(
-          savedRecord.legalAction === 'closed_order_22' || savedRecord.legalAction === 'police_case' ? 'legal_order' : 'create',
-          'บันทึกผลการตรวจสอบใหม่',
-          savedRecord.id,
-          savedRecord.venueName,
-          savedRecord.officerName,
-          `บันทึกผลตรวจสถานประกอบการในพื้นที่ ${savedRecord.district} ผล: ${savedRecord.inspectionStatus}`
-        );
-        return [savedRecord, ...prev];
+  // Initial Fetch Data (GET) from Google Sheets via SheetDB on load
+  useEffect(() => {
+    let isMounted = true;
+    const fetchFromSheets = async () => {
+      // If there are unsynced staged changes in localStorage, do not overwrite them automatically
+      const hasPending = localStorage.getItem(STORAGE_KEY_UNSYNCED) === 'true';
+      if (hasPending) {
+        setSyncStatus('idle');
+        return;
       }
-    });
+
+      setIsSyncing(true);
+      setSyncStatus('syncing');
+      try {
+        const sheetData = await fetchSheetDBRecords();
+        if (isMounted) {
+          if (sheetData.length > 0) {
+            setRecords(sheetData);
+            setHasUnsyncedChanges(false);
+            localStorage.setItem(STORAGE_KEY_UNSYNCED, 'false');
+            localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(sheetData));
+            addAuditLog(
+              'create',
+              'ซิงค์ข้อมูลจาก Google Sheets (SheetDB)',
+              'SHEET-SYNC',
+              'Google Sheets Backend',
+              'ระบบอัตโนมัติ',
+              `ดึงข้อมูลการตรวจสอบ ${sheetData.length} รายการจาก Google Sheets เรียบร้อยแล้ว`
+            );
+          }
+          setSyncStatus('synced');
+        }
+      } catch (err) {
+        console.warn('SheetDB GET on load failed, using local storage cache:', err);
+        if (isMounted) {
+          setSyncStatus('error');
+        }
+      } finally {
+        if (isMounted) {
+          setIsSyncing(false);
+        }
+      }
+    };
+
+    fetchFromSheets();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Sync records and staging flag to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(records));
+      localStorage.setItem(STORAGE_KEY_UNSYNCED, hasUnsyncedChanges ? 'true' : 'false');
+    } catch (e) {
+      console.error('Failed to save records:', e);
+    }
+  }, [records, hasUnsyncedChanges]);
+
+  // Sync logs to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(logs));
+    } catch (e) {
+      console.error('Failed to save logs:', e);
+    }
+  }, [logs]);
+
+  // Count urgent cases (due within 7 days or under active sanction)
+  const urgentCount = records.filter(
+    r => r.inspectionStatus === 'violation' || r.inspectionStatus === 'suspended' || r.inspectionStatus === 'pending_followup'
+  ).length;
+
+  // Staging Save: Local Draft & Review before Cloud Sync
+  const handleSaveRecord = (savedRecord: InspectionRecord) => {
+    const exists = records.some(r => r.id === savedRecord.id);
+
+    if (exists) {
+      setRecords(prev => prev.map(r => (r.id === savedRecord.id ? savedRecord : r)));
+      addAuditLog(
+        'update',
+        'แก้ไขบันทึกผลการตรวจสอบ (แบบร่างในเครื่อง)',
+        savedRecord.id,
+        savedRecord.venueName,
+        savedRecord.officerName,
+        `ปรับปรุงผลการตรวจเป็น ${savedRecord.inspectionStatus} มาตรการ: ${savedRecord.legalAction} (รอส่งขึ้น Google Sheets)`
+      );
+    } else {
+      setRecords(prev => [savedRecord, ...prev]);
+      addAuditLog(
+        savedRecord.legalAction === 'closed_order_22' || savedRecord.legalAction === 'police_case' ? 'legal_order' : 'create',
+        'บันทึกผลการตรวจสอบใหม่ (แบบร่างในเครื่อง)',
+        savedRecord.id,
+        savedRecord.venueName,
+        savedRecord.officerName,
+        `บันทึกผลตรวจสถานประกอบการในพื้นที่ ${savedRecord.district} ผล: ${savedRecord.inspectionStatus} (รอส่งขึ้น Google Sheets)`
+      );
+    }
+
+    setHasUnsyncedChanges(true);
   };
 
-  // Handle Delete
+  // Staging Delete: Local Delete before Cloud Sync
   const handleDeleteRecord = (id: string) => {
     const target = records.find(r => r.id === id);
     if (target) {
       addAuditLog(
         'delete',
-        'ลบบันทึกข้อมูลสถานประกอบการ',
+        'ลบบันทึกข้อมูลสถานประกอบการ (แบบร่างในเครื่อง)',
         target.id,
         target.venueName,
         'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
-        `ลบรายการตรวจของ ${target.venueName} ออกจากระบบ`
+        `ลบรายการตรวจของ ${target.venueName} ออกจากแบบร่างในเครื่อง (รอส่งขึ้น Google Sheets)`
       );
     }
     setRecords(prev => prev.filter(r => r.id !== id));
+    setHasUnsyncedChanges(true);
+  };
+
+  // Manual Push Button: "📤 ส่งข้อมูลขึ้น Google Sheets (Sync to Sheet)"
+  const handlePushToSheet = async () => {
+    setIsSyncing(true);
+    setSyncStatus('syncing');
+    try {
+      await pushAllToSheetDB(records);
+      setHasUnsyncedChanges(false);
+      localStorage.setItem(STORAGE_KEY_UNSYNCED, 'false');
+      setSyncStatus('synced');
+      addAuditLog(
+        'update',
+        'ส่งข้อมูลขึ้น Google Sheets สำเร็จ',
+        'PUSH-SHEET',
+        'Google Sheets Backend',
+        'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
+        `ซิงค์ส่งผลตรวจจำนวน ${records.length} รายการขึ้น Google Sheets เรียบร้อยแล้ว`
+      );
+      alert(`📤 ส่งข้อมูลขึ้น Google Sheets (SheetDB API) สำเร็จเรียบร้อยแล้ว!\n\nจำนวนข้อมูลที่ซิงค์: ${records.length} รายการ`);
+    } catch (err) {
+      console.error('Push to Google Sheets failed:', err);
+      setSyncStatus('error');
+      alert('ไม่สามารถส่งข้อมูลขึ้น Google Sheets ได้ในขณะนี้ โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Manual Pull Button: "📥 ดึงข้อมูลจาก Google Sheets (Fetch from Sheet)"
+  const handlePullFromSheet = async () => {
+    if (hasUnsyncedChanges) {
+      const confirmOverride = confirm(
+        '⚠️ มีข้อมูลฉบับร่างที่บันทึกอยู่ในเครื่องแต่ยังไม่ได้ส่งขึ้น Google Sheets\n\n' +
+        'หากดึงข้อมูลจาก Google Sheets ข้อมูลในเครื่องจะถูกแทนที่ด้วยข้อมูลล่าสุดบนคลาวด์\n\n' +
+        'ต้องการดึงข้อมูลต่อหรือไม่?'
+      );
+      if (!confirmOverride) return;
+    }
+
+    setIsSyncing(true);
+    setSyncStatus('syncing');
+    try {
+      const sheetData = await fetchSheetDBRecords();
+      setRecords(sheetData);
+      setHasUnsyncedChanges(false);
+      localStorage.setItem(STORAGE_KEY_UNSYNCED, 'false');
+      localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(sheetData));
+      setSyncStatus('synced');
+      addAuditLog(
+        'create',
+        'ดึงข้อมูลจาก Google Sheets สำเร็จ',
+        'PULL-SHEET',
+        'Google Sheets Backend',
+        'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
+        `ดึงข้อมูลการตรวจสอบ ${sheetData.length} รายการจาก Google Sheets เข้าสู่หน้าจอ`
+      );
+      alert(`📥 ดึงข้อมูลจาก Google Sheets สำเร็จ!\n\nปัจจุบันมีข้อมูล ${sheetData.length} รายการในระบบ`);
+    } catch (err) {
+      console.error('Fetch from Google Sheets failed:', err);
+      setSyncStatus('error');
+      alert('ไม่สามารถเชื่อมต่อ Google Sheets ได้ในขณะนี้ โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   // Open modal for new record
@@ -222,81 +334,9 @@ export default function App() {
     setActiveTab('records');
   };
 
-  // 1. Activate Real Data Mode (Starting fresh from 0 or existing real records with auto-save)
-  const handleActivateRealDataMode = () => {
-    setDataMode('real');
-    localStorage.setItem(STORAGE_KEY_ACTIVE_MODE, 'real');
-    const savedReal = localStorage.getItem(STORAGE_KEY_REAL_RECORDS);
-    let realData: InspectionRecord[] = [];
-    if (savedReal !== null) {
-      try {
-        const parsed = JSON.parse(savedReal);
-        if (Array.isArray(parsed)) {
-          realData = parsed;
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    setRecords(realData);
-    addAuditLog(
-      'create',
-      'เข้าสู่โหมดข้อมูลจริง (Real Data Mode)',
-      'MODE-REAL',
-      'ระบบรวม 16 อำเภอ',
-      'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
-      `เปิดใช้งานโหมดข้อมูลจริง (ปัจจุบันมี ${realData.length} แห่ง) เริ่มต้นบันทึกและ Auto-Save ลง localStorage`
-    );
-    alert(
-      'สลับเข้าสู่ "โหมดข้อมูลจริง / เริ่มต้นใหม่" เรียบร้อยแล้ว!\n\n' +
-      '• ข้อมูลเริ่มต้นจากหน้างานจริง (ปัจจุบันมี ' + realData.length + ' รายการ)\n' +
-      '• ทุกรายการที่ท่านเพิ่ม/แก้ไข จะถูกบันทึกอัตโนมัติลงในเบราว์เซอร์ทันที (Auto-Save)\n' +
-      '• เมื่อกดรีเฟรช (F5) ข้อมูลจริงที่ท่านกรอกจะไม่สูญหาย 100%'
-    );
-  };
-
-  // 2. Load Sample/Mock Data (Section 1: Initial Mock Data covering 16 districts)
-  const handleLoadSampleData = () => {
-    setDataMode('mock');
-    localStorage.setItem(STORAGE_KEY_ACTIVE_MODE, 'mock');
-    setRecords(INITIAL_INSPECTION_RECORDS);
-    setLogs(INITIAL_ACTIVITY_LOGS);
-    localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(INITIAL_INSPECTION_RECORDS));
-    localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(INITIAL_ACTIVITY_LOGS));
-    addAuditLog(
-      'update',
-      'โหลดข้อมูลตัวอย่าง (Mock Data)',
-      'LOAD-SAMPLE',
-      'สถานบริการ 16 อำเภอสงขลา',
-      'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
-      'โหลดชุดข้อมูลตัวอย่าง 12 รายการครอบคลุม 16 อำเภอในจังหวัดสงขลา'
-    );
-    alert('โหลดข้อมูลตัวอย่าง 16 อำเภอของสงขลา (12 แห่ง) เรียบร้อยแล้ว');
-  };
-
-  // 3. Master Reset Button (Reset to 0 with confirmation popup)
-  const handleResetToZero = () => {
-    if (confirm('⚠️ ยืนยันการ "รีเซ็ตข้อมูลเป็น 0 (Reset All to 0)" หรือไม่?\n\n• ข้อมูลการตรวจทั้งหมดจะถูกล้างเป็น 0 รายการทันที\n• สถิติทุกอำเภอและกราฟจะกลายเป็น 0 ทั้งหมด\n• บันทึกการเคลียร์ข้อมูลลงใน localStorage โดยตรง\n\n(ท่านสามารถคลิก "โหลดข้อมูลตัวอย่าง" หรือ "เพิ่มผลตรวจใหม่" ได้ทุกเมื่อ)')) {
-      setRecords([]);
-      if (dataMode === 'real') {
-        localStorage.setItem(STORAGE_KEY_REAL_RECORDS, JSON.stringify([]));
-      }
-      localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify([]));
-      addAuditLog(
-        'delete',
-        'รีเซ็ตข้อมูลเป็น 0 (Reset All to 0)',
-        'RESET-ZERO',
-        'ทุกสถานประกอบการ (16 อำเภอ)',
-        'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
-        'ดำเนินการล้างข้อมูลทะเบียนตรวจและสถิติทั้งหมดเป็น 0 รายการ บันทึกลง localStorage แล้ว'
-      );
-      alert('รีเซ็ตข้อมูลสถานประกอบการและสถิติทั้งหมดเป็น 0 แห่งเรียบร้อยแล้ว');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-900 flex font-sans antialiased selection:bg-blue-600 selection:text-white">
-      {/* 1. Sleek Modern Sidebar for Desktop & Slide-over Drawer for Mobile */}
+      {/* 1. Modern Sidebar for Desktop & Slide-over Drawer for Mobile */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -304,14 +344,13 @@ export default function App() {
         onClose={() => setIsMobileSidebarOpen(false)}
         totalRecordsCount={records.length}
         urgentCount={urgentCount}
-        dataMode={dataMode}
-        onActivateRealDataMode={handleActivateRealDataMode}
-        onLoadSampleData={handleLoadSampleData}
-        onResetToZero={handleResetToZero}
-        onLoadRealData={handleLoadSampleData}
+        hasUnsyncedChanges={hasUnsyncedChanges}
+        isSyncing={isSyncing}
+        onPushToSheet={handlePushToSheet}
+        onPullFromSheet={handlePullFromSheet}
       />
 
-      {/* 2. Main Content Viewport (Fluid widescreen width scaling up to 1920px) */}
+      {/* 2. Main Content Viewport */}
       <div className="flex-1 lg:pl-72 flex flex-col min-h-screen transition-all w-full overflow-x-hidden">
         {/* Fixed Top Header */}
         <TopHeader
@@ -323,14 +362,14 @@ export default function App() {
             setSelectedDistrict('all');
             setActiveTab('records');
           }}
-          dataMode={dataMode}
-          onActivateRealDataMode={handleActivateRealDataMode}
-          onLoadSampleData={handleLoadSampleData}
-          onResetToZero={handleResetToZero}
-          onLoadRealData={handleActivateRealDataMode}
+          hasUnsyncedChanges={hasUnsyncedChanges}
+          isSyncing={isSyncing}
+          syncStatus={syncStatus}
+          onPushToSheet={handlePushToSheet}
+          onPullFromSheet={handlePullFromSheet}
         />
 
-        {/* Fluid Responsive Content Body (Optimized for Mobile, Tablet & Widescreen Desktop) */}
+        {/* Responsive Content Body */}
         <main className="flex-1 w-full max-w-[1850px] mx-auto p-3 sm:p-5 lg:p-7 xl:p-8 space-y-5 sm:space-y-6 pb-20 lg:pb-8">
           {activeTab === 'dashboard' && (
             <DashboardView
@@ -340,11 +379,10 @@ export default function App() {
               onOpenAddModal={handleOpenAddModal}
               onGoToAnalytics={() => setActiveTab('analytics')}
               onGoToRecords={() => setActiveTab('records')}
-              dataMode={dataMode}
-              onActivateRealDataMode={handleActivateRealDataMode}
-              onLoadSampleData={handleLoadSampleData}
-              onResetToZero={handleResetToZero}
-              onLoadRealData={handleLoadSampleData}
+              hasUnsyncedChanges={hasUnsyncedChanges}
+              isSyncing={isSyncing}
+              onPushToSheet={handlePushToSheet}
+              onPullFromSheet={handlePullFromSheet}
             />
           )}
 
@@ -385,7 +423,7 @@ export default function App() {
                 กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา
               </span>
               <span>·</span>
-              <span>ระบบสารสนเทศจัดระเบียบสังคมและควบคุมสถานบริการ V2.0</span>
+              <span>ระบบฐานข้อมูลและติดตามผลการตรวจสอบสถานบริการและกิจการควบคุม</span>
             </div>
             <div className="text-[11px] text-slate-400">
               ศาลากลางจังหวัดสงขลา ถ.ราชดำเนิน อ.เมืองสงขลา 90000
@@ -393,7 +431,7 @@ export default function App() {
           </div>
         </footer>
 
-        {/* Mobile Quick Action Bottom Dock (Thumb-friendly navigation for Field Officers on Patrol) */}
+        {/* Mobile Quick Action Bottom Dock */}
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-2 py-1.5 flex items-center justify-around shadow-lg no-print">
           <button
             onClick={() => setActiveTab('dashboard')}

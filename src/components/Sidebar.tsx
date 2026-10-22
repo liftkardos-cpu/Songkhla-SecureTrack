@@ -10,7 +10,9 @@ import {
   MapPin, 
   X,
   ChevronRight,
-  RotateCcw
+  UploadCloud,
+  DownloadCloud,
+  RefreshCw
 } from 'lucide-react';
 
 export type NavTab = 'dashboard' | 'records' | 'analytics' | 'report' | 'audit' | 'legal';
@@ -22,12 +24,10 @@ interface SidebarProps {
   onClose: () => void;
   totalRecordsCount: number;
   urgentCount: number;
-  dataMode?: 'mock' | 'real';
-  onActivateRealDataMode?: () => void;
-  onLoadSampleData?: () => void;
-  onResetToDefault?: () => void;
-  onResetToZero?: () => void;
-  onLoadRealData?: () => void;
+  hasUnsyncedChanges?: boolean;
+  isSyncing?: boolean;
+  onPushToSheet?: () => void;
+  onPullFromSheet?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -37,12 +37,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onClose,
   totalRecordsCount,
   urgentCount,
-  dataMode = 'mock',
-  onActivateRealDataMode,
-  onLoadSampleData,
-  onResetToDefault,
-  onResetToZero,
-  onLoadRealData,
+  hasUnsyncedChanges = false,
+  isSyncing = false,
+  onPushToSheet,
+  onPullFromSheet,
 }) => {
   const navItems = [
     {
@@ -194,51 +192,62 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span>พื้นที่ 16 อำเภอ</span>
               </span>
               <span className="text-[10px] text-emerald-400 flex items-center gap-1 font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                Storage พร้อม
+                <span className={`w-1.5 h-1.5 rounded-full ${hasUnsyncedChanges ? 'bg-amber-400 animate-ping' : 'bg-emerald-500'}`}></span>
+                {hasUnsyncedChanges ? 'มีร่างรอส่ง' : 'ซิงค์แล้ว'}
               </span>
             </div>
             <div className="text-[11px] text-slate-400 leading-relaxed">
-              บันทึกข้อมูลปลอดภัยลงในอุปกรณ์อัตโนมัติ (Persistent localStorage)
+              {hasUnsyncedChanges 
+                ? 'ตรวจพบข้อมูลฉบับร่างที่บันทึกในเครื่อง รอส่งขึ้น Google Sheets' 
+                : 'บันทึกฉบับร่างและเชื่อมต่อ Google Sheets ผ่าน SheetDB API'}
             </div>
           </div>
 
-          {(onActivateRealDataMode || onLoadRealData) && (
+          {/* Sync to Sheet Button */}
+          {onPushToSheet && (
             <button
-              onClick={onActivateRealDataMode || onLoadRealData}
-              className={`w-full py-2 px-3 rounded-xl border text-[11px] font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs ${
-                dataMode === 'real'
-                  ? 'border-emerald-500/80 bg-emerald-900/60 text-emerald-200 ring-1 ring-emerald-500/40'
+              onClick={onPushToSheet}
+              disabled={isSyncing}
+              className={`w-full py-2 px-3 rounded-xl border text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 shadow-2xs ${
+                hasUnsyncedChanges
+                  ? 'border-emerald-500/80 bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950/60 ring-1 ring-emerald-400'
                   : 'border-emerald-500/30 hover:border-emerald-500/60 bg-emerald-950/40 hover:bg-emerald-950/70 text-emerald-300'
               }`}
-              title="สลับเข้าสู่โหมดข้อมูลจริง เริ่มต้นจาก 0 รายการ บันทึกอัตโนมัติลง localStorage"
+              title="ส่งข้อมูลในเครื่องขึ้น Google Sheets"
             >
-              <Database className="w-3.5 h-3.5 text-emerald-400" />
-              <span>โหมดข้อมูลจริง / เริ่มต้นใหม่</span>
+              {isSyncing ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <UploadCloud className="w-3.5 h-3.5 text-current" />
+              )}
+              <span>📤 ส่งข้อมูลขึ้น Google Sheets</span>
             </button>
           )}
 
-          {onLoadSampleData && (
+          {/* Fetch from Sheet Button */}
+          {onPullFromSheet && (
             <button
-              onClick={onLoadSampleData}
+              onClick={onPullFromSheet}
+              disabled={isSyncing}
               className="w-full py-1.5 px-3 rounded-xl border border-slate-700/60 hover:border-slate-600 bg-slate-900/70 hover:bg-slate-800 text-slate-300 text-[11px] font-medium transition-all flex items-center justify-center gap-1.5"
-              title="โหลดข้อมูลตัวอย่าง 16 อำเภอของสงขลาสำหรับทดสอบระบบ"
+              title="ดึงข้อมูลที่ตรวจสอบล่าสุดจาก Google Sheets เข้าสู่หน้าจอ"
             >
-              <Database className="w-3.5 h-3.5 text-blue-400" />
-              <span>โหลดข้อมูลตัวอย่าง (16 อำเภอ)</span>
+              <DownloadCloud className="w-3.5 h-3.5 text-blue-400" />
+              <span>📥 ดึงข้อมูลจาก Google Sheets</span>
             </button>
           )}
 
-          {onResetToZero && (
-            <button
-              onClick={onResetToZero}
-              className="w-full py-1.5 px-3 rounded-xl border border-rose-900/40 hover:border-rose-700/60 bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 text-[11px] font-medium transition-all flex items-center justify-center gap-1.5"
-              title="รีเซ็ตข้อมูลเป็น 0 (Reset All to 0) เคลียร์สถิติและ localStorage ทั้งหมด"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
-              <span>รีเซ็ตข้อมูลเป็น 0 (Reset All to 0)</span>
-            </button>
-          )}
+          {/* Direct link to Google Sheets Single-File HTML */}
+          <a
+            href="/songkhla_securetrack.html"
+            target="_blank"
+            rel="noreferrer"
+            className="w-full py-1.5 px-3 rounded-xl border border-emerald-500/30 hover:border-emerald-500/60 bg-emerald-950/30 text-emerald-400 hover:text-emerald-300 text-[11px] font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs"
+            title="เปิดเว็บแอปไฟล์เดี่ยว Google Sheets Real-time Synchronization"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span>เปิดแอป Google Sheets (HTML)</span>
+          </a>
         </div>
       </aside>
     </>

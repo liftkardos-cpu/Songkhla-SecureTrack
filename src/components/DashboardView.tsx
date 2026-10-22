@@ -15,8 +15,10 @@ import {
   ChevronRight,
   Shield,
   ArrowUpRight,
-  Database,
-  RotateCcw
+  UploadCloud,
+  DownloadCloud,
+  RefreshCw,
+  FileCheck2
 } from 'lucide-react';
 
 interface DashboardViewProps {
@@ -26,11 +28,10 @@ interface DashboardViewProps {
   onOpenAddModal: () => void;
   onGoToAnalytics: () => void;
   onGoToRecords: () => void;
-  dataMode?: 'mock' | 'real';
-  onActivateRealDataMode?: () => void;
-  onLoadSampleData?: () => void;
-  onResetToZero?: () => void;
-  onLoadRealData?: () => void;
+  hasUnsyncedChanges?: boolean;
+  isSyncing?: boolean;
+  onPushToSheet?: () => void;
+  onPullFromSheet?: () => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -40,11 +41,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenAddModal,
   onGoToAnalytics,
   onGoToRecords,
-  dataMode = 'mock',
-  onActivateRealDataMode,
-  onLoadSampleData,
-  onResetToZero,
-  onLoadRealData,
+  hasUnsyncedChanges = false,
+  isSyncing = false,
+  onPushToSheet,
+  onPullFromSheet,
 }) => {
   // Aggregate KPIs
   const totalVenues = records.length;
@@ -86,56 +86,70 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         onGoToRecordsTable={onGoToRecords}
       />
 
-      {/* 1.5 Active Mode Notification Banner */}
+      {/* 1.5 Staging & Cloud Sync Status Banner */}
       <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs sm:text-sm shadow-xs transition-all ${
-        dataMode === 'real'
-          ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950'
-          : 'bg-blue-50/80 border-blue-200 text-blue-950'
+        hasUnsyncedChanges
+          ? 'bg-amber-50/90 border-amber-300 text-amber-950'
+          : 'bg-emerald-50/90 border-emerald-300 text-emerald-950'
       }`}>
         <div className="flex items-center gap-3">
           <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-            dataMode === 'real' ? 'bg-emerald-200 text-emerald-800' : 'bg-blue-200 text-blue-800'
+            hasUnsyncedChanges ? 'bg-amber-200 text-amber-800' : 'bg-emerald-200 text-emerald-800'
           }`}>
-            <Database className="w-4 h-4" />
+            {hasUnsyncedChanges ? <UploadCloud className="w-4 h-4" /> : <FileCheck2 className="w-4 h-4" />}
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="font-bold text-sm">
-                {dataMode === 'real' ? '🟢 กำลังทำงานใน "โหมดข้อมูลจริง (Real Data Mode)"' : '🔷 กำลังทำงานใน "โหมดข้อมูลตัวอย่าง (Mock Data)"'}
+                {hasUnsyncedChanges 
+                  ? '📋 โหมดร่างและตรวจสอบก่อนส่ง (Local Staging)' 
+                  : '🟢 ข้อมูลตรงกับ Google Sheets เรียบร้อยแล้ว (Cloud Synced)'}
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/80 border font-mono">
-                Auto-Save: localStorage
+              <span className={`text-[10px] px-2 py-0.5 rounded-full border font-mono ${
+                hasUnsyncedChanges ? 'bg-amber-100 border-amber-300 text-amber-900 font-bold' : 'bg-white/80 border-emerald-200 text-emerald-800'
+              }`}>
+                {hasUnsyncedChanges ? 'มีรายการรอส่งขึ้นคลาวด์' : 'Google Sheets API'}
               </span>
             </div>
             <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-              {dataMode === 'real'
-                ? 'ทุกข้อมูลที่ท่านเพิ่มหรือแก้ไขจะถูกบันทึกอัตโนมัติลงในเบราว์เซอร์ทันที รีเฟรช (F5) ข้อมูลจริงไม่สูญหาย'
-                : 'แสดงชุดข้อมูลตัวอย่าง 16 อำเภอของสงขลา ท่านสามารถกดปุ่ม "โหมดข้อมูลจริง / เริ่มต้นใหม่" เพื่อเริ่มบันทึกงานจริงจาก 0'}
+              {hasUnsyncedChanges
+                ? 'ผลตรวจที่ท่านเพิ่มหรือแก้ไขจะถูกบันทึกไว้ในเครื่องก่อน เพื่อให้เจ้าหน้าที่ตรวจสอบความถูกต้อง จากนั้นกดปุ่ม "ส่งข้อมูลขึ้น Google Sheets"'
+                : 'ข้อมูลการตรวจสอบเชื่อมต่อโดยตรงกับ Google Sheets (SheetDB API) เจ้าหน้าที่สามารถกดดึงข้อมูลล่าสุด หรือบันทึกผลตรวจใหม่ได้ตลอดเวลา'}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-          {dataMode === 'mock' ? (
-            (onActivateRealDataMode || onLoadRealData) && (
-              <button
-                onClick={onActivateRealDataMode || onLoadRealData}
-                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-xs transition-all flex items-center gap-1.5 min-h-[38px]"
-              >
-                <Database className="w-3.5 h-3.5" />
-                <span>เข้าสู่โหมดข้อมูลจริง (Real Data)</span>
-              </button>
-            )
-          ) : (
-            onLoadSampleData && (
-              <button
-                onClick={onLoadSampleData}
-                className="px-3 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-semibold rounded-xl text-xs shadow-2xs transition-all flex items-center gap-1.5"
-              >
-                <Database className="w-3.5 h-3.5 text-blue-600" />
-                <span>โหลดข้อมูลตัวอย่าง</span>
-              </button>
-            )
+          {onPullFromSheet && (
+            <button
+              onClick={onPullFromSheet}
+              disabled={isSyncing}
+              className="px-3 py-1.5 bg-white hover:bg-slate-100 active:bg-slate-200 text-slate-700 border border-slate-300 font-semibold rounded-xl text-xs shadow-2xs transition-all flex items-center gap-1.5"
+              title="ดึงข้อมูลล่าสุดจาก Google Sheets"
+            >
+              <DownloadCloud className="w-3.5 h-3.5 text-blue-700" />
+              <span>📥 ดึงข้อมูลจาก Sheets</span>
+            </button>
+          )}
+
+          {onPushToSheet && (
+            <button
+              onClick={onPushToSheet}
+              disabled={isSyncing}
+              className={`px-3.5 py-2 font-bold rounded-xl text-xs shadow-xs transition-all flex items-center gap-1.5 min-h-[38px] ${
+                hasUnsyncedChanges
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white ring-2 ring-emerald-400'
+                  : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+              }`}
+              title="ส่งข้อมูลที่บันทึกไว้ในเครื่องขึ้น Google Sheets"
+            >
+              {isSyncing ? (
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <UploadCloud className="w-3.5 h-3.5" />
+              )}
+              <span>📤 ส่งข้อมูลขึ้น Google Sheets</span>
+            </button>
           )}
         </div>
       </div>
@@ -160,40 +174,31 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            {(onActivateRealDataMode || onLoadRealData) && (
+            {onPushToSheet && (
               <button
-                onClick={onActivateRealDataMode || onLoadRealData}
-                className={`px-3.5 py-2.5 rounded-xl border text-white text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-1.5 shadow-xs ${
-                  dataMode === 'real'
-                    ? 'bg-emerald-600 hover:bg-emerald-500 border-emerald-400'
-                    : 'bg-emerald-700/80 hover:bg-emerald-700 border-emerald-500/50'
-                }`}
-                title="สลับเข้าสู่โหมดข้อมูลจริง เริ่มต้นจาก 0 รายการ บันทึกอัตโนมัติลง localStorage"
+                onClick={onPushToSheet}
+                disabled={isSyncing}
+                className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                title="ส่งผลตรวจทั้งหมดขึ้น Google Sheets"
               >
-                <Database className="w-4 h-4 text-emerald-200" />
-                <span>โหมดข้อมูลจริง / เริ่มต้นใหม่</span>
+                {isSyncing ? (
+                  <RefreshCw className="w-4 h-4 animate-spin text-emerald-200" />
+                ) : (
+                  <UploadCloud className="w-4 h-4 text-emerald-200" />
+                )}
+                <span>📤 ส่งข้อมูลขึ้น Google Sheets</span>
               </button>
             )}
 
-            {onLoadSampleData && (
+            {onPullFromSheet && (
               <button
-                onClick={onLoadSampleData}
+                onClick={onPullFromSheet}
+                disabled={isSyncing}
                 className="px-3.5 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-xs"
-                title="โหลดชุดข้อมูลตัวอย่าง 16 อำเภอของสงขลา"
+                title="ดึงข้อมูลจาก Google Sheets"
               >
-                <Database className="w-4 h-4 text-blue-400" />
-                <span>โหลดข้อมูลตัวอย่าง</span>
-              </button>
-            )}
-
-            {onResetToZero && (
-              <button
-                onClick={onResetToZero}
-                className="px-3 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/40 border border-rose-400/30 text-rose-200 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-2xs"
-                title="รีเซ็ตข้อมูลเป็น 0 (Reset Data)"
-              >
-                <RotateCcw className="w-4 h-4 text-rose-300" />
-                <span>รีเซ็ตเป็น 0</span>
+                <DownloadCloud className="w-4 h-4 text-blue-400" />
+                <span>📥 ดึงข้อมูลจาก Google Sheets</span>
               </button>
             )}
 
@@ -216,31 +221,40 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* Zero Data Alert (When user has reset data to 0) */}
+      {/* Zero Data Alert (When venues count is 0) */}
       {totalVenues === 0 && (
         <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-5 text-amber-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-xl bg-amber-200/70 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
-              <RotateCcw className="w-5 h-5" />
+              <DownloadCloud className="w-5 h-5" />
             </div>
             <div>
               <h4 className="font-bold text-sm text-amber-900">
-                สถานะระบบ: ฐานข้อมูลปัจจุบันเป็น 0 แห่ง (Reset Data)
+                สถานะระบบ: ยังไม่มีข้อมูลในระบบ (0 แห่ง)
               </h4>
               <p className="text-xs text-amber-800/80 mt-0.5 leading-relaxed">
-                ข้อมูลสถานประกอบการและสถิติทั้งหมดถูกรีเซ็ตเป็นศูนย์และบันทึกใน localStorage เรียบร้อยแล้ว คุณสามารถเริ่มเพิ่มข้อมูลใหม่ หรือคลิกปุ่มเพื่อโหลดข้อมูลตัวอย่างจริงของสงขลา
+                ขณะนี้ยังไม่มีบันทึกผลการตรวจในเครื่อง ท่านสามารถกด "ดึงข้อมูลจาก Google Sheets" เพื่อดึงข้อมูลเดิมจากคลาวด์ หรือกด "บันทึกผลการตรวจใหม่" เพื่อเริ่มต้นลงข้อมูล
               </p>
             </div>
           </div>
-          {onLoadRealData && (
+          <div className="flex items-center gap-2 shrink-0">
+            {onPullFromSheet && (
+              <button
+                onClick={onPullFromSheet}
+                className="px-4 py-2 bg-blue-700 hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
+              >
+                <DownloadCloud className="w-4 h-4" />
+                <span>📥 ดึงข้อมูลจาก Google Sheets</span>
+              </button>
+            )}
             <button
-              onClick={onLoadRealData}
-              className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 shrink-0"
+              onClick={onOpenAddModal}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5"
             >
-              <Database className="w-4 h-4" />
-              <span>โหลดข้อมูลตัวอย่างจริง (Load Real Data)</span>
+              <Building2 className="w-4 h-4" />
+              <span>บันทึกผลตรวจแรก</span>
             </button>
-          )}
+          </div>
         </div>
       )}
 
