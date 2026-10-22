@@ -1,428 +1,432 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" class="h-full">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Songkhla SecureTrack | ระบบติดตามและตรวจสอบความปลอดภัยและกิจการควบคุม จังหวัดสงขลา</title>
-  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Songkhla SecureTrack - ระบบติดตามและตรวจสอบความปลอดภัยและกิจการควบคุม จังหวัดสงขลา</title>
+  <meta name="description" content="ระบบฐานข้อมูลและติดตามผลการตรวจสอบสถานบริการและกิจการควบคุม กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา เชื่อมต่อ Google Sheets Real-time">
+
+  <!-- Google Fonts: Sarabun & Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Google Fonts: Prompt & Sarabun -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-  
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  
-  <!-- Lucide Icons CDN -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Sarabun', 'sans-serif'],
+            heading: ['Prompt', 'sans-serif'],
+          },
+          colors: {
+            royal: {
+              50: '#f0f5ff',
+              100: '#e0ebff',
+              200: '#c7dbfe',
+              500: '#3b82f6',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+              950: '#0f172a',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Lucide Icons & Chart.js -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     body { font-family: 'Sarabun', sans-serif; }
-    h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Prompt', 'Sarabun', sans-serif; }
+    h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Prompt', sans-serif; }
     @media print {
       .no-print { display: none !important; }
-      .print-only { display: block !important; }
-      body { background: white !important; color: black !important; }
+      body { background: white !important; color: black !important; font-size: 11pt; }
     }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
   </style>
 </head>
-<body class="bg-slate-100/70 text-slate-800 antialiased min-h-screen flex flex-col w-full selection:bg-blue-600 selection:text-white">
+<body class="bg-slate-100/80 text-slate-900 min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
 
-  <!-- ================= 1. FIXED TOP HEADER ================= -->
-  <header class="bg-slate-950 border-b border-slate-800 text-white sticky top-0 z-40 shadow-md">
-    <!-- Sub-bar: Office info, clock, and active mode indicator -->
-    <div class="px-3 sm:px-6 py-1.5 border-b border-slate-800/80 text-xs text-slate-400 flex flex-wrap items-center justify-between gap-2">
-      <div class="flex items-center gap-2">
-        <span class="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-        <span class="line-clamp-1 font-medium">Songkhla SecureTrack · กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา</span>
-        <span class="hidden md:inline text-slate-600">|</span>
-        <span class="hidden md:inline">ศาลากลางจังหวัดสงขลา ถ.ราชดำเนิน อ.เมืองสงขลา 90000</span>
-      </div>
-      
-      <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
-        <!-- Live Clock -->
-        <div id="liveClock" class="font-mono tabular-nums text-slate-300 text-xs hidden sm:block"></div>
-        
-        <!-- Mode Badge Indicator -->
-        <span id="activeModeBadge" class="px-2.5 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-700/60 text-[10px] font-medium flex items-center gap-1.5 shadow-2xs">
-          <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-          <span id="activeModeText">โหมดข้อมูลตัวอย่าง (Mock Data)</span>
-        </span>
-        
-        <!-- localStorage Status -->
-        <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/60 text-[10px] font-mono flex items-center gap-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Auto-Save Active
-        </span>
-      </div>
+  <!-- ================= LOADING OVERLAY ================= -->
+  <div id="apiLoadingOverlay" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex flex-col items-center justify-center text-white transition-opacity duration-200 hidden">
+    <div class="bg-slate-900/90 border border-slate-700 p-6 rounded-2xl shadow-2xl flex flex-col items-center gap-3 max-w-xs text-center">
+      <div class="w-10 h-10 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <div id="loadingMessage" class="text-sm font-bold font-heading">กำลังเชื่อมต่อ Google Sheets...</div>
+      <div class="text-[11px] text-slate-400 font-mono">https://sheetdb.io/api/v1/vf15xfki4q5dx</div>
     </div>
+  </div>
 
-    <!-- Main Top Bar: Branding & 3 Data Management Action Buttons -->
-    <div class="w-full max-w-[1850px] mx-auto px-3 sm:px-6 py-3 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-      <!-- Left: Logo & Title -->
+  <!-- ================= TOAST NOTIFICATION CONTAINER ================= -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ================= 1. EXECUTIVE TOP HEADER ================= -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md no-print">
+    <div class="w-full max-w-[1920px] mx-auto px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+      
+      <!-- Brand & Agency Identity -->
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 border border-blue-500/40 flex items-center justify-center text-amber-300 shadow-lg shrink-0">
-          <i data-lucide="shield-check" class="w-6 h-6"></i>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 via-indigo-600 to-amber-500 flex items-center justify-center font-bold text-white shadow-md text-sm border border-white/20 shrink-0">
+          สข
         </div>
         <div>
-          <h1 class="text-sm sm:text-lg font-bold text-white tracking-tight leading-tight line-clamp-1 font-heading flex items-center gap-2">
-            <span>Songkhla SecureTrack</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-900/80 text-blue-200 border border-blue-700/60 font-mono">V2.7</span>
-          </h1>
-          <p class="text-[11px] sm:text-xs text-slate-400 line-clamp-1">
-            ระบบติดตามและตรวจสอบความปลอดภัยและกิจการควบคุม จังหวัดสงขลา (16 อำเภอ)
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white font-heading">Songkhla SecureTrack</h1>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
+              กลุ่มงานความมั่นคง
+            </span>
+            <!-- Live SheetDB Status Badge -->
+            <span id="sheetConnectionStatus" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-500/40">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="sheetStatusText">เชื่อมต่อ Google Sheets สด</span>
+            </span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5 hidden sm:block">
+            ระบบฐานข้อมูลและติดตามผลการตรวจสอบสถานบริการและกิจการควบคุม ที่ทำการปกครองจังหวัดสงขลา (16 อำเภอ)
           </p>
         </div>
       </div>
 
-      <!-- Right: The 3 Core Data Management Action Buttons + Add Button -->
-      <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-end">
-        <!-- 1. Real Data Mode Button (Section 2: Starts from 0, auto-saves to localStorage) -->
+      <!-- Action Toolbar (100% Thai Language) -->
+      <div class="flex items-center gap-2 flex-wrap justify-end">
+        
+        <!-- Refresh / Sync Button -->
         <button 
-          id="btnRealDataMode"
-          onclick="activateRealDataMode()" 
-          class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-1.5 transition-all min-h-[40px] whitespace-nowrap"
-          title="สลับเข้าสู่โหมดข้อมูลจริง เริ่มต้นบันทึกผลการตรวจจริง (Auto-save ลง localStorage)"
+          onclick="fetchFromGoogleSheets()" 
+          id="btnSyncSheet"
+          class="px-3 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all min-h-[38px] whitespace-nowrap"
+          title="ดึงข้อมูลล่าสุดจาก Google Sheets"
         >
-          <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-200"></i>
-          <span>โหมดข้อมูลจริง / เริ่มต้นใหม่</span>
+          <i data-lucide="refresh-cw" class="w-4 h-4 text-blue-400"></i>
+          <span class="hidden sm:inline">ซิงค์ Google Sheets</span>
+          <span class="sm:hidden">ซิงค์</span>
         </button>
 
-        <!-- 2. Load Mock Data Button (Section 1: Initial Mock Data) -->
+        <!-- Load Mock Data to Google Sheets Button -->
         <button 
-          id="btnLoadMockData"
-          onclick="loadMockData()" 
-          class="px-2.5 sm:px-3 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-200 border border-slate-700 rounded-xl text-xs sm:text-sm font-medium shadow-xs flex items-center gap-1.5 transition-all min-h-[40px] whitespace-nowrap"
-          title="โหลดข้อมูลตัวอย่าง 16 อำเภอของสงขลาสำหรับทดสอบระบบ"
+          onclick="loadSampleDataToGoogleSheets()" 
+          id="btnLoadMock"
+          class="px-3 py-2 bg-indigo-700 hover:bg-indigo-600 active:bg-indigo-800 text-white rounded-xl text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all min-h-[38px] whitespace-nowrap"
+          title="อัปโหลดชุดข้อมูลตัวอย่าง 12 รายการของสงขลาลง Google Sheets ทันที"
         >
-          <i data-lucide="database" class="w-4 h-4 text-blue-400"></i>
-          <span class="hidden sm:inline">โหลดข้อมูลตัวอย่าง</span>
-          <span class="sm:hidden">ข้อมูลตัวอย่าง</span>
+          <i data-lucide="upload-cloud" class="w-4 h-4 text-indigo-200"></i>
+          <span class="hidden lg:inline">โหลดข้อมูลตัวอย่างลง Google Sheets</span>
+          <span class="lg:hidden">โหลดตัวอย่าง</span>
         </button>
 
-        <!-- 3. Master Reset Button (Section 3: Reset All to 0) -->
+        <!-- Master Reset Button ("รีเซ็ตข้อมูลเป็น 0") -->
         <button 
           onclick="masterResetToZero()" 
-          class="px-2.5 sm:px-3 py-2 bg-rose-950/80 hover:bg-rose-900 text-rose-300 border border-rose-800/80 rounded-xl text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-1.5 transition-all min-h-[40px] whitespace-nowrap"
-          title="รีเซ็ตข้อมูลเป็น 0 (Reset All to 0) เคลียร์สถิติและ localStorage ทั้งหมด"
+          id="btnResetZero"
+          class="px-3 py-2 bg-rose-950/80 hover:bg-rose-900 active:bg-rose-950 text-rose-300 border border-rose-800/80 rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all min-h-[38px] whitespace-nowrap"
+          title="ล้างข้อมูลทั้งหมดใน Google Sheets และในระบบเป็น 0"
         >
           <i data-lucide="trash-2" class="w-4 h-4 text-rose-400"></i>
           <span>รีเซ็ตข้อมูลเป็น 0</span>
         </button>
 
-        <!-- Primary Add Record Button -->
+        <!-- Add New Record Primary Button -->
         <button 
-          onclick="openModal()" 
-          class="px-3.5 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md flex items-center gap-1.5 transition-all min-h-[40px] whitespace-nowrap"
+          onclick="openAddModal()" 
+          class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all min-h-[38px] whitespace-nowrap"
         >
           <i data-lucide="plus" class="w-4 h-4"></i>
-          <span class="hidden sm:inline">เพิ่มผลตรวจใหม่</span>
-          <span class="sm:hidden">เพิ่มตรวจ</span>
+          <span>เพิ่มผลตรวจใหม่</span>
         </button>
       </div>
+
     </div>
   </header>
 
-  <!-- ================= 2. STICKY NAVIGATION TABS ================= -->
-  <div class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2 shadow-2xs sticky top-[108px] md:top-[82px] z-30 no-print">
-    <div class="w-full max-w-[1850px] mx-auto flex items-center justify-between gap-3 overflow-x-auto">
+  <!-- ================= 2. TAB NAVIGATION ================= -->
+  <div class="bg-white border-b border-slate-200 px-4 sm:px-6 py-2 sticky top-[62px] z-30 shadow-2xs no-print">
+    <div class="w-full max-w-[1920px] mx-auto flex items-center justify-between gap-3 overflow-x-auto">
       <nav class="flex items-center gap-1.5">
-        <button onclick="switchTab('dashboard')" id="tabBtn-dashboard" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-700 text-white transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap shadow-xs">
+        <button onclick="switchTab('dashboard')" id="tabBtn-dashboard" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-700 text-white transition-all flex items-center gap-1.5 min-h-[38px] whitespace-nowrap shadow-xs">
           <i data-lucide="layout-dashboard" class="w-4 h-4"></i> ภาพรวมสถิติ
         </button>
-        <button onclick="switchTab('records')" id="tabBtn-records" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap">
+        <button onclick="switchTab('records')" id="tabBtn-records" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5 min-h-[38px] whitespace-nowrap">
           <i data-lucide="table" class="w-4 h-4"></i> ฐานข้อมูลการตรวจ (<span id="recordCountBadge" class="font-mono">0</span>)
         </button>
-        <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap">
+        <button onclick="switchTab('analytics')" id="tabBtn-analytics" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5 min-h-[38px] whitespace-nowrap">
           <i data-lucide="pie-chart" class="w-4 h-4"></i> กราฟวิเคราะห์
         </button>
-        <button onclick="switchTab('report')" id="tabBtn-report" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap">
-          <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> รายงานผู้บริหาร (A4)
-        </button>
-        <button onclick="switchTab('audit')" id="tabBtn-audit" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap">
-          <i data-lucide="history" class="w-4 h-4"></i> ประวัติทำรายการ
+        <button onclick="switchTab('report')" id="tabBtn-report" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5 min-h-[38px] whitespace-nowrap">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> รายงานราชการ (A4)
         </button>
       </nav>
 
-      <div class="flex items-center gap-3 shrink-0">
-        <span id="storageInfoLabel" class="text-xs text-slate-500 font-mono hidden lg:inline">
-          localStorage: บันทึกอัตโนมัติ
+      <div class="flex items-center gap-3 shrink-0 text-xs text-slate-500 font-mono hidden md:flex">
+        <span class="flex items-center gap-1">
+          <i data-lucide="database" class="w-3.5 h-3.5 text-blue-600"></i>
+          <span>SheetDB Real-time Sync</span>
         </span>
+        <span class="text-slate-300">|</span>
+        <span id="lastUpdatedLabel">อัปเดตล่าสุด: กำลังโหลด...</span>
       </div>
     </div>
   </div>
 
   <!-- ================= 3. MAIN CONTENT BODY ================= -->
-  <main class="flex-1 w-full max-w-[1850px] mx-auto p-3 sm:p-5 lg:p-7 space-y-6">
+  <main class="flex-1 w-full max-w-[1920px] mx-auto p-3 sm:p-5 lg:p-7 space-y-6">
 
-    <!-- Active Mode Indicator Alert Box -->
-    <div id="modeNotificationBanner" class="p-3.5 sm:p-4 rounded-2xl border flex items-center justify-between gap-3 text-xs sm:text-sm transition-all shadow-xs">
-      <div class="flex items-center gap-2.5">
-        <div id="modeBannerIcon" class="w-7 h-7 rounded-xl flex items-center justify-center shrink-0">
-          <i data-lucide="info" class="w-4 h-4"></i>
+    <!-- Active Cloud Sync Status Banner -->
+    <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white rounded-2xl p-5 sm:p-6 shadow-md border border-slate-800 relative overflow-hidden">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-10">
+        <div class="space-y-1.5 max-w-3xl">
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-xs font-semibold text-blue-300">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            เชื่อมต่อ API: https://sheetdb.io/api/v1/vf15xfki4q5dx
+          </div>
+          <h2 class="text-lg sm:text-xl font-bold text-white font-heading">
+            ระบบติดตามและตรวจสอบความปลอดภัยและกิจการควบคุม จังหวัดสงขลา (16 อำเภอ)
+          </h2>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            เชื่อมต่อฐานข้อมูล Google Sheets แบบ Real-time ตาม พ.ร.บ. สถานบริการ พ.ศ. 2509, คำสั่ง คสช. ที่ 22/2558, และ พ.ร.บ. โรงแรม พ.ศ. 2547 บันทึกข้อมูลตรวจสอบทันทีทั้งบนหน้าเว็บและ Google Sheets
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="fetchFromGoogleSheets()" class="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-1.5 border border-white/20">
+            <i data-lucide="refresh-cw" class="w-4 h-4 text-emerald-400"></i>
+            <span>รีเฟรชข้อมูล</span>
+          </button>
+          <button onclick="exportToCSV()" class="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-1.5 border border-white/20">
+            <i data-lucide="download" class="w-4 h-4 text-amber-400"></i>
+            <span>ส่งออก CSV (ภาษาไทย)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty Sheet Banner / Prompt for Mock Data (When Google Sheet has 0 rows) -->
+    <div id="emptyDataPromptBanner" class="hidden bg-amber-50 border border-amber-300 rounded-2xl p-5 text-amber-950 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center shrink-0 mt-0.5">
+          <i data-lucide="alert-triangle" class="w-5 h-5"></i>
         </div>
         <div>
-          <span id="modeBannerTitle" class="font-bold">กำลังใช้งานโหมดข้อมูลตัวอย่าง</span>
-          <span id="modeBannerDesc" class="text-slate-600 block text-xs mt-0.5">
-            ข้อมูลที่แสดงเป็นชุดข้อมูลตัวอย่าง 16 อำเภอของสงขลา ท่านสามารถกดปุ่ม "โหมดข้อมูลจริง / เริ่มต้นใหม่" เพื่อบันทึกข้อมูลหน้างานจริง
-          </span>
+          <h4 class="font-bold text-sm text-amber-950 font-heading">
+            Google Sheets ปัจจุบันว่างเปล่า (0 รายการ)
+          </h4>
+          <p class="text-xs text-amber-800 mt-0.5 leading-relaxed">
+            ยังไม่มีรายการในตาราง Google Sheets ของท่าน ท่านสามารถกด <strong>"โหลดข้อมูลตัวอย่างลง Google Sheets"</strong> เพื่อบันทึกข้อมูลตัวอย่าง 12 รายการครอบคลุม 16 อำเภอ หรือกด <strong>"เพิ่มผลตรวจใหม่"</strong> เพื่อเริ่มบันทึกข้อมูลจริง
+          </p>
         </div>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <button id="modeBannerActionBtn" onclick="activateRealDataMode()" class="px-3 py-1.5 rounded-xl text-xs font-bold shadow-2xs">
-          เข้าสู่โหมดข้อมูลจริง
+        <button onclick="loadSampleDataToGoogleSheets()" class="px-4 py-2 bg-indigo-700 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 min-h-[38px]">
+          <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+          <span>โหลดข้อมูลตัวอย่างลง Google Sheets</span>
         </button>
       </div>
     </div>
 
     <!-- ================= TAB 1: DASHBOARD ================= -->
     <section id="view-dashboard" class="space-y-6">
-      
-      <!-- Zero Data Banner (When count is 0) -->
-      <div id="zeroDataBanner" class="hidden bg-amber-50/95 border border-amber-300 rounded-2xl p-5 text-amber-900 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div class="flex items-start gap-3">
-          <div class="w-10 h-10 rounded-xl bg-amber-200 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
-            <i data-lucide="alert-circle" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-sm text-amber-950 font-heading">
-              สถานะปัจจุบัน: ข้อมูลในระบบเป็น 0 รายการ (พร้อมบันทึกข้อมูลจริง)
-            </h4>
-            <p class="text-xs text-amber-800 mt-0.5 leading-relaxed">
-              สถิติและทะเบียนการตรวจทั้งหมดเป็น 0 แห่ง เมื่อท่านกด "เพิ่มผลตรวจใหม่" ระบบจะบันทึกข้อมูลเข้าสู่ localStorage ทันที หรือหากต้องการดูการทำงานตัวอย่าง ให้คลิก "โหลดข้อมูลตัวอย่าง"
-            </p>
-          </div>
-        </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <button onclick="loadMockData()" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 min-h-[38px]">
-            <i data-lucide="database" class="w-4 h-4"></i>
-            <span>โหลดข้อมูลตัวอย่าง</span>
-          </button>
-          <button onclick="openModal()" class="px-3.5 py-2 bg-blue-700 hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 min-h-[38px]">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            <span>เพิ่มผลตรวจแรก</span>
-          </button>
-        </div>
-      </div>
 
-      <!-- Hero Summary Banner -->
-      <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white rounded-2xl p-6 sm:p-7 shadow-lg border border-slate-800 relative overflow-hidden">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-          <div class="space-y-2 max-w-2xl">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-xs font-semibold text-blue-300">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Songkhla SecureTrack · กิจการควบคุม 16 อำเภอ
-            </div>
-            <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white leading-snug font-heading">
-              ระบบติดตามและตรวจสอบความปลอดภัยและกิจการควบคุม จังหวัดสงขลา
-            </h2>
-            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              กำกับดูแลบังคับใช้ตาม พ.ร.บ. สถานบริการ พ.ศ. 2509, คำสั่งหัวหน้า คสช. ที่ 22/2558 (สั่งปิด 5 ปี), พ.ร.บ. โรงแรม พ.ศ. 2547 และกฎหมายควบคุมอาวุธปืน/ของเก่า
-            </p>
-          </div>
-          <div class="flex flex-wrap items-center gap-2.5">
-            <button onclick="activateRealDataMode()" class="px-3.5 py-2.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 active:bg-emerald-700 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all">
-              <i data-lucide="file-check-2" class="w-4 h-4 text-emerald-200"></i>
-              <span>โหมดข้อมูลจริง</span>
-            </button>
-            <button onclick="loadMockData()" class="px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/15 border border-white/20 text-white text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-1.5 shadow-xs">
-              <i data-lucide="database" class="w-4 h-4 text-blue-400"></i>
-              <span>โหลดข้อมูลตัวอย่าง</span>
-            </button>
-            <button onclick="masterResetToZero()" class="px-3 py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/40 border border-rose-400/30 text-rose-200 text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition-all">
-              <i data-lucide="trash-2" class="w-4 h-4 text-rose-300"></i>
-              <span>รีเซ็ตเป็น 0</span>
-            </button>
-            <button onclick="openModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 text-white text-xs font-semibold shadow-md transition-all flex items-center gap-2">
-              <i data-lucide="plus" class="w-4 h-4"></i>
-              <span>เพิ่มบันทึกผลตรวจ</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- KPI Summary Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        <!-- 1. Total Inspected -->
-        <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+      <!-- 4 KPI Stat Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card 1: Total Inspected -->
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500">สถานประกอบการที่ตรวจแล้ว</span>
-            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-100 shadow-2xs">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-100">
               <i data-lucide="building-2" class="w-5 h-5"></i>
             </div>
           </div>
           <div class="mt-3 flex items-baseline gap-2">
-            <span id="kpiTotal" class="text-3xl font-extrabold text-slate-900 tabular-nums font-mono">0</span>
-            <span class="text-xs text-slate-500">แห่ง</span>
+            <span id="kpiTotalVenues" class="text-3xl font-extrabold text-slate-900 font-mono">0</span>
+            <span class="text-xs text-slate-500">แห่ง (ใน Google Sheets)</span>
           </div>
-          <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>ครอบคลุม 16 อำเภอ</span>
-            <span class="text-blue-700 font-semibold">อัปเดตเรียลไทม์</span>
+          <div class="mt-2 text-[11px] text-blue-700 font-medium flex items-center gap-1">
+            <i data-lucide="database" class="w-3.5 h-3.5"></i>
+            <span>ซิงค์ตรงกับฐานข้อมูลคลาวด์</span>
           </div>
         </div>
 
-        <!-- 2. Passed / Normal -->
-        <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+        <!-- Card 2: Normal / Passed -->
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-500">ผ่านเกณฑ์มาตรฐานปกติ</span>
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-100 shadow-2xs">
+            <span class="text-xs font-semibold text-slate-500">ผลการตรวจปกติ / ผ่านเกณฑ์</span>
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-100">
               <i data-lucide="check-circle-2" class="w-5 h-5"></i>
             </div>
           </div>
           <div class="mt-3 flex items-baseline gap-2">
-            <span id="kpiNormal" class="text-3xl font-extrabold text-emerald-700 tabular-nums font-mono">0</span>
+            <span id="kpiNormalVenues" class="text-3xl font-extrabold text-emerald-600 font-mono">0</span>
             <span class="text-xs text-slate-500">แห่ง</span>
           </div>
-          <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>ปฏิบัติตามกฎหมาย</span>
-            <span class="text-emerald-700 font-semibold font-mono" id="kpiNormalPercent">0%</span>
+          <div class="mt-2 text-[11px] text-emerald-700 font-medium flex items-center gap-1">
+            <span id="kpiNormalPercent">0%</span>
+            <span>ของสถานประกอบการทั้งหมด</span>
           </div>
         </div>
 
-        <!-- 3. Violations Found -->
-        <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+        <!-- Card 3: Violations Found -->
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500">พบการกระทำความผิด</span>
-            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center border border-rose-100 shadow-2xs">
+            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center border border-rose-100">
               <i data-lucide="alert-triangle" class="w-5 h-5"></i>
             </div>
           </div>
           <div class="mt-3 flex items-baseline gap-2">
-            <span id="kpiViolations" class="text-3xl font-extrabold text-rose-700 tabular-nums font-mono">0</span>
+            <span id="kpiViolations" class="text-3xl font-extrabold text-rose-600 font-mono">0</span>
             <span class="text-xs text-slate-500">แห่ง</span>
           </div>
-          <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>มีคำสั่งตักเตือน/ปรับปรุง/ปิด</span>
-            <span class="text-rose-700 font-semibold">มาตรการเข้ม</span>
+          <div class="mt-2 text-[11px] text-rose-700 font-medium">
+            ต้องดำเนินคดี / สั่งพัก / ตักเตือน
           </div>
         </div>
 
-        <!-- 4. Pending / Suspended -->
-        <div class="bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+        <!-- Card 4: Pending Follow-up -->
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs hover:shadow-md transition-all">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-500">ติดตามผล / พักใช้ใบอนุญาต</span>
-            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-100 shadow-2xs">
+            <span class="text-xs font-semibold text-slate-500">รอตรวจซ้ำ / ติดตามผล</span>
+            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-100">
               <i data-lucide="clock" class="w-5 h-5"></i>
             </div>
           </div>
           <div class="mt-3 flex items-baseline gap-2">
-            <span id="kpiPending" class="text-3xl font-extrabold text-amber-700 tabular-nums font-mono">0</span>
+            <span id="kpiPending" class="text-3xl font-extrabold text-amber-600 font-mono">0</span>
             <span class="text-xs text-slate-500">แห่ง</span>
           </div>
-          <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span>ต้องตรวจซ้ำตามกำหนด</span>
-            <span class="text-amber-700 font-semibold">เฝ้าระวัง</span>
+          <div class="mt-2 text-[11px] text-amber-700 font-medium">
+            มีกำหนดนัดตรวจติดตามผล
           </div>
         </div>
       </div>
 
-      <!-- Songkhla 16 Districts Interactive Grid -->
-      <div class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+      <!-- District Breakdown Grid (16 Districts of Songkhla) -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
         <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <i data-lucide="map-pin" class="w-5 h-5 text-blue-700"></i>
-            <h3 class="font-bold text-slate-900 font-heading text-base">
-              สถิติการตรวจสอบจำแนกตามพื้นที่ 16 อำเภอของจังหวัดสงขลา
-            </h3>
-          </div>
-          <span class="text-xs text-slate-400 hidden sm:inline">คลิกที่อำเภอเพื่อกรองข้อมูลในตารางทันที</span>
+          <h3 class="font-bold text-slate-900 font-heading text-sm flex items-center gap-2">
+            <i data-lucide="map-pin" class="w-4 h-4 text-blue-700"></i>
+            สถิติการตรวจจำแนก 16 อำเภอ จังหวัดสงขลา (คลิกเพื่อกรองข้อมูล)
+          </h3>
+          <span class="text-xs text-slate-400">บูรณาการฝ่ายปกครอง</span>
         </div>
-        <div id="districtsGrid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5"></div>
-      </div>
-    </section>
-
-    <!-- ================= TAB 2: RECORDS TABLE ================= -->
-    <section id="view-records" class="hidden space-y-4">
-      
-      <!-- Filter and Search Toolbar -->
-      <div class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
-        <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-          <!-- Search Input -->
-          <div class="relative flex-1">
-            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
-            <input 
-              type="text" 
-              id="searchInput" 
-              oninput="renderTable()" 
-              placeholder="ค้นหาชื่อร้าน, เลขที่ใบอนุญาต, ชื่อผู้จัดการ, หรือเจ้าหน้าที่ผู้ตรวจ..." 
-              class="w-full pl-10 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 min-h-[44px]"
-            />
-          </div>
-
-          <!-- View Mode Toggle & Export -->
-          <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
-            <!-- Table vs Cards Toggle -->
-            <div class="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs">
-              <button onclick="setStandAloneViewMode('table')" id="vmBtn-table" class="px-3 py-1.5 rounded-lg font-bold bg-white text-blue-700 shadow-2xs min-h-[36px] flex items-center gap-1">
-                <i data-lucide="table" class="w-3.5 h-3.5"></i> ตาราง
-              </button>
-              <button onclick="setStandAloneViewMode('cards')" id="vmBtn-cards" class="px-3 py-1.5 rounded-lg font-bold text-slate-600 min-h-[36px] flex items-center gap-1">
-                <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> การ์ด
-              </button>
-            </div>
-
-            <!-- Export CSV -->
-            <button onclick="exportCSV()" class="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl border border-slate-200 flex items-center gap-1.5 min-h-[44px]">
-              <i data-lucide="download" class="w-4 h-4 text-slate-600"></i>
-              <span>ส่งออก Excel</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Multi-Filter Dropdowns -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-100">
-          <div>
-            <label class="text-[11px] font-semibold text-slate-500 block mb-1">พื้นที่อำเภอ:</label>
-            <select id="filterDistrict" onchange="renderTable()" class="w-full py-2 px-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[38px]"></select>
-          </div>
-          <div>
-            <label class="text-[11px] font-semibold text-slate-500 block mb-1">ประเภทกิจการ:</label>
-            <select id="filterType" onchange="renderTable()" class="w-full py-2 px-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[38px]">
-              <option value="all">ทุกประเภทสถานประกอบการ</option>
-              <option value="entertainment">สถานบริการ (พ.ร.บ. 2509)</option>
-              <option value="similar_entertainment">ร้านคล้ายสถานบริการ (คสช. 22/2558)</option>
-              <option value="hotel">โรงแรม / ที่พัก (พ.ร.บ. โรงแรม 2547)</option>
-              <option value="controlled">กิจการควบคุม (ของเก่า/ค้าอาวุธปืน)</option>
-            </select>
-          </div>
-          <div>
-            <label class="text-[11px] font-semibold text-slate-500 block mb-1">ผลการตรวจสอบ:</label>
-            <select id="filterStatus" onchange="renderTable()" class="w-full py-2 px-3 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 min-h-[38px]">
-              <option value="all">ทุกผลการตรวจสอบ</option>
-              <option value="normal">ปกติ (ผ่านเกณฑ์มาตรฐาน)</option>
-              <option value="violation">พบการกระทำความผิด</option>
-              <option value="pending_followup">อยู่ระหว่างรอตรวจซ้ำ</option>
-              <option value="suspended">สั่งพักใช้ใบอนุญาต / สั่งปิด 5 ปี</option>
-            </select>
-          </div>
+        <div id="districtsGrid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5">
+          <!-- Injected via JavaScript -->
         </div>
       </div>
 
-      <!-- High-Density Desktop Table View -->
-      <div id="container-table" class="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
+      <!-- Recent Records Quick Preview -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-slate-900 font-heading text-sm flex items-center gap-2">
+            <i data-lucide="list" class="w-4 h-4 text-blue-700"></i>
+            รายการตรวจล่าสุดที่ซิงค์กับ Google Sheets
+          </h3>
+          <button onclick="switchTab('records')" class="text-xs text-blue-700 hover:text-blue-900 font-bold flex items-center gap-1">
+            ดูตารางทั้งหมด <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
         <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs border-collapse">
+          <table class="w-full text-left text-xs">
             <thead>
-              <tr class="bg-slate-100/90 border-b border-slate-200 text-slate-700 font-semibold uppercase tracking-wider">
-                <th class="py-3 px-4">ชื่อสถานประกอบการ / ทะเบียน</th>
-                <th class="py-3 px-3">ประเภทกิจการ</th>
-                <th class="py-3 px-3">อำเภอ</th>
-                <th class="py-3 px-3">วันที่ตรวจ</th>
-                <th class="py-3 px-3">ผลการตรวจ</th>
-                <th class="py-3 px-3">มาตรการที่ดำเนินการ</th>
-                <th class="py-3 px-3">เจ้าหน้าที่ผู้ตรวจ</th>
-                <th class="py-3 px-4 text-right">จัดการ</th>
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold">
+                <th class="py-2.5 px-3">รหัส</th>
+                <th class="py-2.5 px-3">ชื่อสถานประกอบการ</th>
+                <th class="py-2.5 px-3">ประเภทกิจการ</th>
+                <th class="py-2.5 px-3">อำเภอ</th>
+                <th class="py-2.5 px-3">วันที่ตรวจล่าสุด</th>
+                <th class="py-2.5 px-3">สถานะการตรวจสอบ</th>
+                <th class="py-2.5 px-3">เจ้าหน้าที่ผู้รับผิดชอบ</th>
               </tr>
             </thead>
-            <tbody id="recordsTableBody" class="divide-y divide-slate-100 text-slate-800"></tbody>
+            <tbody id="dashboardRecentTableBody" class="divide-y divide-slate-100 text-slate-800">
+              <!-- Injected via JavaScript -->
+            </tbody>
           </table>
         </div>
       </div>
 
-      <!-- Touch-Friendly Cards View (Mobile & Tablet) -->
-      <div id="container-cards" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- ================= TAB 2: FULL RECORDS TABLE ================= -->
+    <section id="view-records" class="hidden space-y-4">
+      
+      <!-- Filter & Search Toolbar (100% Thai Language) -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        
+        <div class="relative flex-1">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+          <input 
+            type="text" 
+            id="searchInput" 
+            oninput="renderTable()"
+            placeholder="ค้นหาชื่อสถานประกอบการ, รหัส, อำเภอ, เจ้าหน้าที่..." 
+            class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+          />
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- District Filter -->
+          <select id="filterDistrict" onchange="renderTable()" class="py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+            <option value="all">ทุกอำเภอ (16 อำเภอ)</option>
+          </select>
+
+          <!-- Business Type Filter -->
+          <select id="filterType" onchange="renderTable()" class="py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+            <option value="all">ทุกประเภทกิจการ</option>
+            <option value="สถานบริการ (พ.ร.บ. 2509)">สถานบริการ (พ.ร.บ. 2509)</option>
+            <option value="ร้านคล้ายสถานบริการ (คสช. 22/2558)">ร้านคล้ายสถานบริการ (คสช. 22/2558)</option>
+            <option value="โรงแรม / ที่พัก (พ.ร.บ. โรงแรม 2547)">โรงแรม / ที่พัก (พ.ร.บ. โรงแรม 2547)</option>
+            <option value="กิจการควบคุม (ของเก่า/ค้าอาวุธปืน)">กิจการควบคุม (ของเก่า/ค้าอาวุธปืน)</option>
+          </select>
+
+          <!-- Status Filter -->
+          <select id="filterStatus" onchange="renderTable()" class="py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+            <option value="all">ทุกสถานะการตรวจ</option>
+            <option value="ปกติ">ปกติ (ผ่านเกณฑ์)</option>
+            <option value="พบการกระทำความผิด">พบการกระทำความผิด</option>
+            <option value="อยู่ระหว่างรอตรวจซ้ำ">อยู่ระหว่างรอตรวจซ้ำ</option>
+            <option value="สั่งพักใช้ใบอนุญาต / สั่งปิด">สั่งพักใช้ใบอนุญาต / สั่งปิด</option>
+          </select>
+
+          <button onclick="openAddModal()" class="px-3.5 py-2 bg-blue-700 hover:bg-blue-600 text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 whitespace-nowrap">
+            <i data-lucide="plus" class="w-4 h-4"></i> เพิ่มรายการ
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Main Desktop Table View (100% Thai Headers) -->
+      <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-100/90 border-b border-slate-200 text-slate-700 font-semibold uppercase tracking-wider">
+                <th class="py-3 px-3">รหัส</th>
+                <th class="py-3 px-4">ชื่อสถานประกอบการ</th>
+                <th class="py-3 px-3">ประเภทกิจการ</th>
+                <th class="py-3 px-3">อำเภอ</th>
+                <th class="py-3 px-3">วันที่ตรวจล่าสุด</th>
+                <th class="py-3 px-3">สถานะการตรวจสอบ</th>
+                <th class="py-3 px-3">เจ้าหน้าที่ผู้รับผิดชอบ</th>
+                <th class="py-3 px-4 text-right">จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="recordsTableBody" class="divide-y divide-slate-100 text-slate-800">
+              <!-- Injected via JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
     </section>
 
     <!-- ================= TAB 3: ANALYTICS CHARTS ================= -->
@@ -452,7 +456,7 @@
       </div>
     </section>
 
-    <!-- ================= TAB 4: OFFICIAL REPORT (A4) ================= -->
+    <!-- ================= TAB 4: OFFICIAL REPORT (A4 PRINTABLE) ================= -->
     <section id="view-report" class="hidden space-y-6">
       <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex items-center justify-between no-print">
         <div class="text-xs text-slate-600">
@@ -470,111 +474,106 @@
             รายงานผลการจัดระเบียบสังคมและตรวจสอบสถานบริการ โรงแรม และกิจการควบคุม
           </h2>
           <p class="text-sm font-medium text-slate-700 mt-1">
-            จังหวัดสงขลา ประจำปีงบประมาณ พ.ศ. 2568 (Songkhla SecureTrack)
+            จังหวัดสงขลา (Songkhla SecureTrack - Google Sheets Real-time)
           </p>
           <div class="mt-2 text-xs text-slate-500">
             กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา ศาลากลางจังหวัดสงขลา
           </div>
         </div>
-        <div id="reportSummaryContent" class="text-xs sm:text-sm text-slate-800 leading-relaxed space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200"></div>
-      </div>
-    </section>
-
-    <!-- ================= TAB 5: AUDIT TRAIL ================= -->
-    <section id="view-audit" class="hidden space-y-4">
-      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
-        <div class="flex items-center justify-between">
-          <h3 class="font-bold text-slate-900 font-heading text-sm flex items-center gap-2">
-            <i data-lucide="history" class="w-4 h-4 text-blue-700"></i>
-            ประวัติการบันทึกและแก้ไขข้อมูล (Audit Trail & Activity Log)
-          </h3>
-          <span class="text-xs text-slate-400">บันทึกลง localStorage อัตโนมัติ</span>
+        <div id="reportSummaryContent" class="text-xs sm:text-sm text-slate-800 leading-relaxed space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <!-- Injected via JavaScript -->
         </div>
-        <div id="auditLogList" class="divide-y divide-slate-100 text-xs"></div>
       </div>
     </section>
 
   </main>
 
-  <!-- ================= ADD/EDIT RECORD MODAL ================= -->
+  <!-- ================= ADD / EDIT RECORD MODAL (100% THAI FORM) ================= -->
   <div id="recordModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[92vh] my-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200 flex flex-col max-h-[92vh] my-auto">
+      
+      <!-- Modal Header -->
       <div class="bg-slate-900 text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
-        <h3 id="modalTitle" class="font-bold text-base font-heading">บันทึกผลการตรวจใหม่ (Songkhla SecureTrack)</h3>
+        <div class="flex items-center gap-2">
+          <i data-lucide="file-edit" class="w-5 h-5 text-blue-400"></i>
+          <h3 id="modalTitle" class="font-bold text-base font-heading">บันทึกผลการตรวจใหม่ (เชื่อมต่อ Google Sheets)</h3>
+        </div>
         <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
+      <!-- Thai Form -->
       <form id="recordForm" onsubmit="handleFormSubmit(event)" class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 text-xs">
         <input type="hidden" id="formEditingId" value="" />
+
         <div>
           <label class="block font-bold text-slate-700 mb-1">ชื่อสถานประกอบการ / ร้าน <span class="text-rose-500">*</span></label>
-          <input type="text" id="formVenueName" required placeholder="เช่น ซาวด์บาร์ หาดใหญ่, โรงแรม ด่านนอก การ์เดน" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-500 text-sm" />
+          <input type="text" id="formVenueName" required placeholder="เช่น เดอะ ซาวด์บาร์ หาดใหญ่, โรงแรม ด่านนอก การ์เดน" class="w-full py-2.5 px-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-100 focus:border-blue-500 text-sm" />
         </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">เลขที่ใบอนุญาต <span class="text-rose-500">*</span></label>
-            <input type="text" id="formLicense" required placeholder="สข 01/2567 หรือ อยู่ระหว่างยื่นขอ" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+            <label class="block font-bold text-slate-700 mb-1">รหัสรายการ (ID) <span class="text-rose-500">*</span></label>
+            <input type="text" id="formId" required placeholder="REC-2568-001" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono" />
           </div>
           <div>
             <label class="block font-bold text-slate-700 mb-1">ประเภทกิจการ <span class="text-rose-500">*</span></label>
             <select id="formType" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-              <option value="entertainment">สถานบริการ (พ.ร.บ. 2509)</option>
-              <option value="similar_entertainment">ร้านคล้ายสถานบริการ (คสช. 22/2558)</option>
-              <option value="hotel">โรงแรม / ที่พัก (พ.ร.บ. โรงแรม 2547)</option>
-              <option value="controlled">กิจการควบคุม (ของเก่า/ค้าอาวุธปืน)</option>
+              <option value="สถานบริการ (พ.ร.บ. 2509)">สถานบริการ (พ.ร.บ. 2509)</option>
+              <option value="ร้านคล้ายสถานบริการ (คสช. 22/2558)">ร้านคล้ายสถานบริการ (คสช. 22/2558)</option>
+              <option value="โรงแรม / ที่พัก (พ.ร.บ. โรงแรม 2547)">โรงแรม / ที่พัก (พ.ร.บ. โรงแรม 2547)</option>
+              <option value="กิจการควบคุม (ของเก่า/ค้าอาวุธปืน)">กิจการควบคุม (ของเก่า/ค้าอาวุธปืน)</option>
             </select>
           </div>
         </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block font-bold text-slate-700 mb-1">อำเภอ (จ.สงขลา) <span class="text-rose-500">*</span></label>
             <select id="formDistrict" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs"></select>
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1">ผลการตรวจสอบ <span class="text-rose-500">*</span></label>
-            <select id="formStatus" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-              <option value="normal">ปกติ (ผ่านเกณฑ์มาตรฐาน)</option>
-              <option value="violation">พบการกระทำความผิด</option>
-              <option value="pending_followup">อยู่ระหว่างรอตรวจซ้ำ</option>
-              <option value="suspended">สั่งพักใช้ใบอนุญาต / สั่งปิด</option>
-            </select>
+            <label class="block font-bold text-slate-700 mb-1">วันที่ตรวจล่าสุด <span class="text-rose-500">*</span></label>
+            <input type="date" id="formDate" required class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
           </div>
         </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label class="block font-bold text-slate-700 mb-1">มาตรการทางกฎหมาย</label>
-            <select id="formLegal" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-              <option value="none">ไม่มี (ผ่านเกณฑ์ปกติ)</option>
-              <option value="warned">ออกหนังสือตักเตือน</option>
-              <option value="rectify_ordered">สั่งให้ปรับปรุงแก้ไขภายในเวลาที่กำหนด</option>
-              <option value="suspended_temp">มีคำสั่งพักใช้ใบอนุญาตชั่วคราว</option>
-              <option value="closed_order_22">คำสั่งปิด 5 ปี (คำสั่ง คสช. 22/2558)</option>
-              <option value="police_case">จับกุมดำเนินคดีส่งพนักงานสอบสวน</option>
+            <label class="block font-bold text-slate-700 mb-1">สถานะการตรวจสอบ <span class="text-rose-500">*</span></label>
+            <select id="formStatus" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+              <option value="ปกติ">ปกติ (ผ่านเกณฑ์)</option>
+              <option value="พบการกระทำความผิด">พบการกระทำความผิด</option>
+              <option value="อยู่ระหว่างรอตรวจซ้ำ">อยู่ระหว่างรอตรวจซ้ำ</option>
+              <option value="สั่งพักใช้ใบอนุญาต / สั่งปิด">สั่งพักใช้ใบอนุญาต / สั่งปิด</option>
             </select>
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1">เจ้าหน้าที่ผู้รับผิดชอบ</label>
-            <input type="text" id="formOfficer" value="นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+            <label class="block font-bold text-slate-700 mb-1">เจ้าหน้าที่ผู้รับผิดชอบ <span class="text-rose-500">*</span></label>
+            <input type="text" id="formOfficer" required value="นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
           </div>
         </div>
+
         <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
           <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-100 min-h-[40px]">ยกเลิก</button>
-          <button type="submit" class="px-5 py-2 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl shadow-md min-h-[40px]">บันทึกข้อมูล</button>
+          <button type="submit" id="btnSubmitForm" class="px-5 py-2 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded-xl shadow-md min-h-[40px] flex items-center gap-1.5">
+            <i data-lucide="save" class="w-4 h-4"></i>
+            <span>บันทึกลง Google Sheets</span>
+          </button>
         </div>
       </form>
+
     </div>
   </div>
 
-  <!-- ================= 4. JAVASCRIPT: 3 DATA SECTIONS & CORE LOGIC ================= -->
+  <!-- ================= 4. JAVASCRIPT: GOOGLE SHEETS (SHEETDB) LOGIC ================= -->
   <script>
-    // Storage Keys
-    const KEY_REAL_DATA = 'songkhla_securetrack_real_records_v1';
-    const KEY_MOCK_DATA = 'songkhla_securetrack_mock_records_v1';
-    const KEY_ACTIVE_MODE = 'songkhla_securetrack_active_mode_v1';
-    const KEY_AUDIT_LOGS = 'songkhla_securetrack_audit_logs_v1';
+    // SheetDB API Endpoint provided in User Request
+    const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/vf15xfki4q5dx';
+    const LOCAL_CACHE_KEY = 'songkhla_securetrack_sheetdb_cache_v1';
 
+    // 16 Districts of Songkhla Province
     const DISTRICTS = [
       'อำเภอเมืองสงขลา', 'อำเภอหาดใหญ่', 'อำเภอสะเดา', 'อำเภอสิงหนคร',
       'อำเภอจะนะ', 'อำเภอเทพา', 'อำเภอสะบ้าย้อย', 'อำเภอนาทวี',
@@ -582,274 +581,487 @@
       'อำเภอบางกล่ำ', 'อำเภอควนเนียง', 'อำเภอนาหม่อม', 'อำเภอคลองหอยโข่ง'
     ];
 
-    // Rich Sample Mock Data (12 venue records covering Songkhla's 16 districts)
-    const DEFAULT_MOCK_DATA = [
-      { id: 'REC-2568-101', venueName: 'เดอะ ซาวด์บาร์ หาดใหญ่ (The Sound Bar)', licenseNumber: 'สข 04/2566', businessType: 'similar_entertainment', district: 'อำเภอหาดใหญ่', subDistrict: 'หาดใหญ่', lastInspectionDate: '2026-10-18', inspectionStatus: 'suspended', legalAction: 'closed_order_22', officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)' },
-      { id: 'REC-2568-102', venueName: 'โรงแรม แกรนด์ พาราดิโซ ด่านนอก', licenseNumber: 'ร.ร. 12/2565', businessType: 'hotel', district: 'อำเภอสะเดา', subDistrict: 'สำนักขาม', lastInspectionDate: '2026-10-15', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)' },
-      { id: 'REC-2568-103', venueName: 'ร้านนั่งชิลล์ บาร์แอนด์บิสโทร ชลาทัศน์', licenseNumber: 'อยู่ระหว่างยื่นขอ', businessType: 'similar_entertainment', district: 'อำเภอเมืองสงขลา', subDistrict: 'บ่อยาง', lastInspectionDate: '2026-10-14', inspectionStatus: 'violation', legalAction: 'rectify_ordered', officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)' },
-      { id: 'REC-2568-104', venueName: 'ร้านทรัพย์อนันต์ รีไซเคิล (รับซื้อของเก่า)', licenseNumber: 'ข.ก. 09/2567', businessType: 'controlled', district: 'อำเภอสิงหนคร', subDistrict: 'สทิงหม้อ', lastInspectionDate: '2026-10-12', inspectionStatus: 'normal', legalAction: 'none', officerName: 'ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)' },
-      { id: 'REC-2568-105', venueName: 'จะนะ ริเวอร์ไซด์ รีสอร์ท', licenseNumber: 'ร.ร. 08/2566', businessType: 'hotel', district: 'อำเภอจะนะ', subDistrict: 'บ้านนา', lastInspectionDate: '2026-10-10', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)' },
-      { id: 'REC-2568-106', venueName: 'รัตภูมิ การค้า & คลังวัสดุ', licenseNumber: 'อส 15/2567', businessType: 'controlled', district: 'อำเภอรัตภูมิ', subDistrict: 'กำแพงเพชร', lastInspectionDate: '2026-10-08', inspectionStatus: 'pending_followup', legalAction: 'warned', officerName: 'ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)' },
-      { id: 'REC-2568-107', venueName: 'สะบ้าย้อย เกสต์เฮาส์', licenseNumber: 'ร.ร. 03/2567', businessType: 'hotel', district: 'อำเภอสะบ้าย้อย', subDistrict: 'สะบ้าย้อย', lastInspectionDate: '2026-10-06', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)' },
-      { id: 'REC-2568-108', venueName: 'ระโนด ซีฟู้ด แอนด์ เลาจน์', licenseNumber: 'สข 09/2566', businessType: 'similar_entertainment', district: 'อำเภอระโนด', subDistrict: 'ระโนด', lastInspectionDate: '2026-10-05', inspectionStatus: 'violation', legalAction: 'police_case', officerName: 'ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)' },
-      { id: 'REC-2568-109', venueName: 'คลับ 99 เอนเตอร์เทนเมนต์ หาดใหญ่', licenseNumber: 'สข 01/2566', businessType: 'entertainment', district: 'อำเภอหาดใหญ่', subDistrict: 'คอหงส์', lastInspectionDate: '2026-10-04', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)' },
-      { id: 'REC-2568-110', venueName: 'นาทวี บิลเลียด & คาเฟ่', licenseNumber: 'สข 18/2566', businessType: 'similar_entertainment', district: 'อำเภอนาทวี', subDistrict: 'นาทวี', lastInspectionDate: '2026-10-02', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)' },
-      { id: 'REC-2568-111', venueName: 'เทพา บีช รีสอร์ท', licenseNumber: 'ร.ร. 05/2565', businessType: 'hotel', district: 'อำเภอเทพา', subDistrict: 'ปากบาง', lastInspectionDate: '2026-09-28', inspectionStatus: 'normal', legalAction: 'none', officerName: 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)' },
-      { id: 'REC-2568-112', venueName: 'สทิงพระ ไนท์ สเตชัน', licenseNumber: 'สข 11/2567', businessType: 'similar_entertainment', district: 'อำเภอสทิงพระ', subDistrict: 'จะทิ้งพระ', lastInspectionDate: '2026-09-25', inspectionStatus: 'pending_followup', legalAction: 'warned', officerName: 'นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)' }
+    // Rich Sample Data (12 venues) to initialize Google Sheets or preview when empty
+    const SAMPLE_RECORDS = [
+      {
+        "id (รหัส)": "REC-2568-101",
+        "venue_name (ชื่อสถานประกอบการ)": "เดอะ ซาวด์บาร์ หาดใหญ่ (The Sound Bar)",
+        "business_type (ประเภทกิจการ)": "สถานบริการ (พ.ร.บ. 2509)",
+        "district (อำเภอ)": "อำเภอหาดใหญ่",
+        "last_inspection_date (วันที่ตรวจล่าสุด)": "2026-10-18",
+        "status (สถานะการตรวจสอบ)": "สั่งพักใช้ใบอนุญาต / สั่งปิด",
+        "officer (เจ้าหน้าที่ผู้รับผิดชอบ)": "นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)"
+      },
+      {
+        "id (รหัส)": "REC-2568-102",
+        "venue_name (ชื่อสถานประกอบการ)": "โรงแรม แกรนด์ พาราดิโซ ด่านนอก",
+        "business_type (ประเภทกิจการ)": "โรงแรม / ที่พัก (พ.ร.บ. โรงแรม 2547)",
+        "district (อำเภอ)": "อำเภอสะเดา",
+        "last_inspection_date (วันที่ตรวจล่าสุด)": "2026-10-15",
+        "status (สถานะการตรวจสอบ)": "ปกติ",
+        "officer (เจ้าหน้าที่ผู้รับผิดชอบ)": "นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)"
+      },
+      {
+        "id (รหัส)": "REC-2568-103",
+        "venue_name (ชื่อสถานประกอบการ)": "ร้านนั่งชิลล์ บาร์แอนด์บิสโทร ชลาทัศน์",
+        "business_type (ประเภทกิจการ)": "ร้านคล้ายสถานบริการ (คสช. 22/2558)",
+        "district (อำเภอ)": "อำเภอเมืองสงขลา",
+        "last_inspection_date (วันที่ตรวจล่าสุด)": "2026-10-14",
+        "status (สถานะการตรวจสอบ)": "พบการกระทำความผิด",
+        "officer (เจ้าหน้าที่ผู้รับผิดชอบ)": "นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)"
+      },
+      {
+        "id (รหัส)": "REC-2568-104",
+        "venue_name (ชื่อสถานประกอบการ)": "ร้านทรัพย์อนันต์ รีไซเคิล (รับซื้อของเก่า)",
+        "business_type (ประเภทกิจการ)": "กิจการควบคุม (ของเก่า/ค้าอาวุธปืน)",
+        "district (อำเภอ)": "อำเภอสิงหนคร",
+        "last_inspection_date (วันที่ตรวจล่าสุด)": "2026-10-12",
+        "status (สถานะการตรวจสอบ)": "ปกติ",
+        "officer (เจ้าหน้าที่ผู้รับผิดชอบ)": "ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)"
+      },
+      {
+        "id (รหัส)": "REC-2568-105",
+        "venue_name (ชื่อสถานประกอบการ)": "จะนะ ริเวอร์ไซด์ รีสอร์ท",
+        "business_type (ประเภทกิจการ)": "โรงแรม / ที่พัก (พ.ร.บ. โรงแรม 2547)",
+        "district (อำเภอ)": "อำเภอจะนะ",
+        "last_inspection_date (วันที่ตรวจล่าสุด)": "2026-10-10",
+        "status (สถานะการตรวจสอบ)": "ปกติ",
+        "officer (เจ้าหน้าที่ผู้รับผิดชอบ)": "นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)"
+      },
+      {
+        "id (รหัส)": "REC-2568-106",
+        "venue_name (ชื่อสถานประกอบการ)": "รัตภูมิ การค้า & คลังวัสดุ",
+        "business_type (ประเภทกิจการ)": "กิจการควบคุม (ของเก่า/ค้าอาวุธปืน)",
+        "district (อำเภอ)": "อำเภอรัตภูมิ",
+        "last_inspection_date (วันที่ตรวจล่าสุด)": "2026-10-08",
+        "status (สถานะการตรวจสอบ)": "อยู่ระหว่างรอตรวจซ้ำ",
+        "officer (เจ้าหน้าที่ผู้รับผิดชอบ)": "ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)"
+      },
+      {
+        "id (รหัส)": "REC-2568-107",
+        "venue_name (ชื่อสถานประกอบการ)": "สะบ้าย้อย เกสต์เฮาส์",
+        "business_type (ประเภทกิจการ)": "โรงแรม / ที่พัก (พ.ร.บ. โรงแรม 2547)",
+        "district (อำเภอ)": "อำเภอสะบ้าย้อย",
+        "last_inspection_date (วันที่ตรวจล่าสุด)": "2026-10-06",
+        "status (สถานะการตรวจสอบ)": "ปกติ",
+        "officer (เจ้าหน้าที่ผู้รับผิดชอบ)": "นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)"
+      },
+      {
+        "id (รหัส)": "REC-2568-108",
+        "venue_name (ชื่อสถานประกอบการ)": "ระโนด ซีฟู้ด แอนด์ เลาจน์",
+        "business_type (ประเภทกิจการ)": "ร้านคล้ายสถานบริการ (คสช. 22/2558)",
+        "district (อำเภอ)": "อำเภอระโนด",
+        "last_inspection_date (วันที่ตรวจล่าสุด)": "2026-10-05",
+        "status (สถานะการตรวจสอบ)": "พบการกระทำความผิด",
+        "officer (เจ้าหน้าที่ผู้รับผิดชอบ)": "ร.ต.อ.วิเชียร สุวรรณโณ (จนท.ชุดปฏิบัติการ)"
+      },
+      {
+        "id (รหัส)": "REC-2568-109",
+        "venue_name (ชื่อสถานประกอบการ)": "คลับ 99 เอนเตอร์เทนเมนต์ หาดใหญ่",
+        "business_type (ประเภทกิจการ)": "สถานบริการ (พ.ร.บ. 2509)",
+        "district (อำเภอ)": "อำเภอหาดใหญ่",
+        "last_inspection_date (วันที่ตรวจล่าสุด)": "2026-10-04",
+        "status (สถานะการตรวจสอบ)": "ปกติ",
+        "officer (เจ้าหน้าที่ผู้รับผิดชอบ)": "นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)"
+      },
+      {
+        "id (รหัส)": "REC-2568-110",
+        "venue_name (ชื่อสถานประกอบการ)": "นาทวี บิลเลียด & คาเฟ่",
+        "business_type (ประเภทกิจการ)": "ร้านคล้ายสถานบริการ (คสช. 22/2558)",
+        "district (อำเภอ)": "อำเภอนาทวี",
+        "last_inspection_date (วันที่ตรวจล่าสุด)": "2026-10-02",
+        "status (สถานะการตรวจสอบ)": "ปกติ",
+        "officer (เจ้าหน้าที่ผู้รับผิดชอบ)": "นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)"
+      },
+      {
+        "id (รหัส)": "REC-2568-111",
+        "venue_name (ชื่อสถานประกอบการ)": "เทพา บีช รีสอร์ท",
+        "business_type (ประเภทกิจการ)": "โรงแรม / ที่พัก (พ.ร.บ. โรงแรม 2547)",
+        "district (อำเภอ)": "อำเภอเทพา",
+        "last_inspection_date (วันที่ตรวจล่าสุด)": "2026-09-28",
+        "status (สถานะการตรวจสอบ)": "ปกติ",
+        "officer (เจ้าหน้าที่ผู้รับผิดชอบ)": "นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)"
+      },
+      {
+        "id (รหัส)": "REC-2568-112",
+        "venue_name (ชื่อสถานประกอบการ)": "สทิงพระ ไนท์ สเตชัน",
+        "business_type (ประเภทกิจการ)": "ร้านคล้ายสถานบริการ (คสช. 22/2558)",
+        "district (อำเภอ)": "อำเภอสทิงพระ",
+        "last_inspection_date (วันที่ตรวจล่าสุด)": "2026-09-25",
+        "status (สถานะการตรวจสอบ)": "อยู่ระหว่างรอตรวจซ้ำ",
+        "officer (เจ้าหน้าที่ผู้รับผิดชอบ)": "นายมงคล ศักดิ์เจริญ (ปลัดอำเภองานความมั่นคง)"
+      }
     ];
 
-    // Global Reactive States
-    let currentMode = 'mock'; // 'mock' or 'real'
-    let records = [];
-    let auditLogs = [];
-    let currentViewMode = 'table';
+    // State Variables
+    let rawRecords = []; // Holds items as mapped { id, venueName, businessType, district, lastInspectionDate, status, officer }
+    let donutChartInstance = null;
+    let barChartInstance = null;
 
-    // -------------------------------------------------------------
-    // SECTION 1: INITIAL LOAD & MOCK DATA (First Time Visitor)
-    // -------------------------------------------------------------
-    function loadInitialAppState() {
-      try {
-        const savedMode = localStorage.getItem(KEY_ACTIVE_MODE);
-        
-        if (savedMode === 'real') {
-          // User was in Real Data Mode
-          currentMode = 'real';
-          const savedReal = localStorage.getItem(KEY_REAL_DATA);
-          if (savedReal !== null) {
-            records = JSON.parse(savedReal);
-          } else {
-            records = [];
-          }
-        } else {
-          // Default or Saved as Mock
-          currentMode = 'mock';
-          const savedMock = localStorage.getItem(KEY_MOCK_DATA);
-          if (savedMock !== null) {
-            records = JSON.parse(savedMock);
-          } else {
-            // Very first time visitor: Load rich mock data!
-            records = JSON.parse(JSON.stringify(DEFAULT_MOCK_DATA));
-            localStorage.setItem(KEY_MOCK_DATA, JSON.stringify(records));
-            localStorage.setItem(KEY_ACTIVE_MODE, 'mock');
-          }
-        }
-
-        // Audit logs
-        const savedAudit = localStorage.getItem(KEY_AUDIT_LOGS);
-        if (savedAudit) {
-          auditLogs = JSON.parse(savedAudit);
-        } else {
-          auditLogs = [
-            { id: 'LOG-INIT', time: new Date().toLocaleString('th-TH'), officer: 'ระบบอัตโนมัติ', action: 'เริ่มต้นระบบ Songkhla SecureTrack (16 อำเภอ)' }
-          ];
-          localStorage.setItem(KEY_AUDIT_LOGS, JSON.stringify(auditLogs));
-        }
-      } catch (err) {
-        console.error('Initialization error:', err);
-        currentMode = 'mock';
-        records = JSON.parse(JSON.stringify(DEFAULT_MOCK_DATA));
-      }
-    }
-
-    // Function to reload Mock Data at any time
-    function loadMockData() {
-      currentMode = 'mock';
-      records = JSON.parse(JSON.stringify(DEFAULT_MOCK_DATA));
-      localStorage.setItem(KEY_MOCK_DATA, JSON.stringify(records));
-      localStorage.setItem(KEY_ACTIVE_MODE, 'mock');
-      
-      addAuditLog('สลับเข้าสู่โหมดข้อมูลตัวอย่าง (Mock Data) และโหลดชุดข้อมูล 16 อำเภอ');
-      updateAllUI();
-      alert('โหลดข้อมูลตัวอย่าง 16 อำเภอของสงขลาเรียบร้อยแล้ว (กำลังทำงานในโหมดข้อมูลตัวอย่าง)');
-    }
-
-    // -------------------------------------------------------------
-    // SECTION 2: REAL DATA MODE & AUTO-SAVE (Starting from 0)
-    // -------------------------------------------------------------
-    function activateRealDataMode() {
-      currentMode = 'real';
-      localStorage.setItem(KEY_ACTIVE_MODE, 'real');
-
-      // Check if user already has saved real records
-      const savedReal = localStorage.getItem(KEY_REAL_DATA);
-      if (savedReal !== null) {
-        try {
-          records = JSON.parse(savedReal);
-        } catch (e) {
-          records = [];
-        }
-      } else {
-        // Starts Fresh from 0!
-        records = [];
-        localStorage.setItem(KEY_REAL_DATA, JSON.stringify([]));
-      }
-
-      addAuditLog('เปิดใช้งาน "โหมดข้อมูลจริง (Real Data Mode)" พร้อมระบบบันทึกอัตโนมัติ');
-      updateAllUI();
-      
-      alert(
-        'สลับเข้าสู่ "โหมดข้อมูลจริง / เริ่มต้นใหม่" เรียบร้อยแล้ว!\n\n' +
-        '• เริ่มต้นจากข้อมูลจริง (ปัจจุบันมี ' + records.length + ' รายการ)\n' +
-        '• ทุกรายการที่ท่านเพิ่ม/แก้ไข จะถูกบันทึกอัตโนมัติลงในเบราว์เซอร์ (Auto-Save)\n' +
-        '• เมื่อกดรีเฟรช (F5) ข้อมูลจริงที่ท่านกรอกจะไม่สูญหาย 100%'
-      );
-    }
-
-    // Auto-save logic dynamically saving to the active storage key
-    function autoSaveRecords() {
-      try {
-        const key = (currentMode === 'real') ? KEY_REAL_DATA : KEY_MOCK_DATA;
-        localStorage.setItem(key, JSON.stringify(records));
-        localStorage.setItem(KEY_ACTIVE_MODE, currentMode);
-      } catch (e) {
-        console.error('Auto-save error:', e);
-      }
-    }
-
-    function autoSaveAudit() {
-      try {
-        localStorage.setItem(KEY_AUDIT_LOGS, JSON.stringify(auditLogs));
-      } catch (e) {
-        console.error('Audit save error:', e);
-      }
-    }
-
-    function addAuditLog(actionText, officer = 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)') {
-      auditLogs.unshift({
-        id: 'LOG-' + Date.now(),
-        time: new Date().toLocaleString('th-TH'),
-        officer: officer,
-        action: actionText
+    // Toast Notification Helper
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      const bg = type === 'error' ? 'bg-rose-900 border-rose-700 text-rose-100' : (type === 'warning' ? 'bg-amber-900 border-amber-700 text-amber-100' : 'bg-slate-900 border-emerald-500/50 text-white');
+      toast.className = `${bg} border px-4 py-3 rounded-xl shadow-xl text-xs flex items-center gap-2 pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0`;
+      toast.innerHTML = `
+        <span class="w-2 h-2 rounded-full ${type === 'error' ? 'bg-rose-500' : (type === 'warning' ? 'bg-amber-400' : 'bg-emerald-400')} animate-pulse"></span>
+        <span class="font-medium">${message}</span>
+      `;
+      container.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
       });
-      autoSaveAudit();
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // Loading overlay helper
+    function showLoading(msg = 'กำลังเชื่อมต่อ Google Sheets...') {
+      const el = document.getElementById('apiLoadingOverlay');
+      const txt = document.getElementById('loadingMessage');
+      if (txt) txt.innerText = msg;
+      if (el) el.classList.remove('hidden');
+    }
+
+    function hideLoading() {
+      const el = document.getElementById('apiLoadingOverlay');
+      if (el) el.classList.add('hidden');
+    }
+
+    // Normalizes row from SheetDB column keys to internal object
+    function normalizeRow(row) {
+      return {
+        id: row['id (รหัส)'] || row.id || '',
+        venueName: row['venue_name (ชื่อสถานประกอบการ)'] || row.venue_name || row.venueName || '',
+        businessType: row['business_type (ประเภทกิจการ)'] || row.business_type || row.businessType || '',
+        district: row['district (อำเภอ)'] || row.district || '',
+        lastInspectionDate: row['last_inspection_date (วันที่ตรวจล่าสุด)'] || row.last_inspection_date || row.lastInspectionDate || '',
+        status: row['status (สถานะการตรวจสอบ)'] || row.status || '',
+        officer: row['officer (เจ้าหน้าที่ผู้รับผิดชอบ)'] || row.officer || ''
+      };
+    }
+
+    // Converts internal object to SheetDB exact column names
+    function toSheetDBFormat(item) {
+      return {
+        "id (รหัส)": item.id,
+        "venue_name (ชื่อสถานประกอบการ)": item.venueName,
+        "business_type (ประเภทกิจการ)": item.businessType,
+        "district (อำเภอ)": item.district,
+        "last_inspection_date (วันที่ตรวจล่าสุด)": item.lastInspectionDate,
+        "status (สถานะการตรวจสอบ)": item.status,
+        "officer (เจ้าหน้าที่ผู้รับผิดชอบ)": item.officer
+      };
     }
 
     // -------------------------------------------------------------
-    // SECTION 3: MASTER RESET BUTTON (Reset All to 0)
+    // 1. LOAD DATA (GET from Google Sheets via SheetDB)
     // -------------------------------------------------------------
-    function masterResetToZero() {
-      const confirmed = confirm(
-        '⚠️ ยืนยันการ "รีเซ็ตข้อมูลเป็น 0 (Reset All to 0)" หรือไม่?\n\n' +
-        '• ข้อมูลการตรวจทั้งหมดจะถูกล้างเป็น 0 รายการทันที\n' +
-        '• สถิติทุกอำเภอและกราฟจะกลายเป็น 0 ทั้งหมด\n' +
-        '• บันทึกการเคลียร์ข้อมูลลงใน localStorage โดยตรง\n\n' +
-        '(ท่านสามารถคลิก "โหลดข้อมูลตัวอย่าง" หรือ "เพิ่มผลตรวจใหม่" ได้ทุกเมื่อ)'
-      );
+    async function fetchFromGoogleSheets() {
+      showLoading('กำลังดาวน์โหลดข้อมูลจาก Google Sheets...');
+      const statusText = document.getElementById('sheetStatusText');
+      
+      try {
+        const response = await fetch(SHEETDB_API_URL, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        });
 
-      if (confirmed) {
-        records = [];
-        autoSaveRecords();
+        if (!response.ok) {
+          throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+        }
 
-        addAuditLog('ดำเนินการ "รีเซ็ตข้อมูลเป็น 0 (Reset All to 0)" ล้างข้อมูลทั้งหมดในระบบ');
-        updateAllUI();
+        const data = await response.json();
         
-        alert('รีเซ็ตข้อมูลสถานประกอบการและสถิติทั้งหมดเป็น 0 แห่งเรียบร้อยแล้ว');
+        if (Array.isArray(data)) {
+          rawRecords = data.map(normalizeRow).filter(r => r.id || r.venueName);
+          localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(rawRecords));
+
+          if (statusText) statusText.innerText = `เชื่อมต่อสด (${rawRecords.length} รายการ)`;
+          document.getElementById('lastUpdatedLabel').innerText = `อัปเดตล่าสุด: ${new Date().toLocaleTimeString('th-TH')} น.`;
+          
+          showToast(`ซิงค์ข้อมูลจาก Google Sheets สำเร็จ (${rawRecords.length} รายการ)`);
+        } else {
+          rawRecords = [];
+        }
+
+      } catch (err) {
+        console.warn('Google Sheets API Error, attempting to load from local cache:', err);
+        if (statusText) statusText.innerText = 'ออฟไลน์ / ใช้ข้อมูลแคช';
+        
+        const cached = localStorage.getItem(LOCAL_CACHE_KEY);
+        if (cached) {
+          try {
+            rawRecords = JSON.parse(cached);
+            showToast('เชื่อมต่อคลาวด์ขัดข้อง: แสดงข้อมูลที่แคชไว้ในเครื่อง', 'warning');
+          } catch(e) {
+            rawRecords = [];
+          }
+        } else {
+          rawRecords = [];
+          showToast('ไม่สามารถเชื่อมต่อ Google Sheets และไม่มีแคชในเครื่อง', 'error');
+        }
+      } finally {
+        hideLoading();
+        updateAllUI();
       }
     }
 
     // -------------------------------------------------------------
-    // UI UPDATES & REACTIVITY ENGINE
+    // 2. ADD / UPDATE RECORD (POST / PATCH to Google Sheets)
+    // -------------------------------------------------------------
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      const editId = document.getElementById('formEditingId').value;
+      const item = {
+        id: document.getElementById('formId').value.trim(),
+        venueName: document.getElementById('formVenueName').value.trim(),
+        businessType: document.getElementById('formType').value,
+        district: document.getElementById('formDistrict').value,
+        lastInspectionDate: document.getElementById('formDate').value,
+        status: document.getElementById('formStatus').value,
+        officer: document.getElementById('formOfficer').value.trim()
+      };
+
+      if (!item.id || !item.venueName) {
+        alert('กรุณากรอกรหัสและชื่อสถานประกอบการให้ครบถ้วน');
+        return;
+      }
+
+      showLoading(editId ? 'กำลังแก้ไขข้อมูลใน Google Sheets...' : 'กำลังส่งข้อมูลไปยัง Google Sheets...');
+
+      try {
+        if (editId) {
+          // Update via SheetDB PATCH by column 'id (รหัส)'
+          const colKey = encodeURIComponent('id (รหัส)');
+          const valKey = encodeURIComponent(editId);
+          const updateUrl = `${SHEETDB_API_URL}/${colKey}/${valKey}`;
+          
+          const patchRes = await fetch(updateUrl, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: toSheetDBFormat(item) })
+          });
+
+          if (!patchRes.ok) {
+            throw new Error(`PATCH Failed: ${patchRes.status}`);
+          }
+
+          // Update local state
+          rawRecords = rawRecords.map(r => r.id === editId ? item : r);
+          showToast(`แก้ไขข้อมูล "${item.venueName}" ใน Google Sheets สำเร็จ`);
+        } else {
+          // Check for duplicate ID
+          if (rawRecords.some(r => r.id === item.id)) {
+            alert(`รหัส "${item.id}" มีอยู่ในระบบแล้ว กรุณาใช้รหัสอื่น`);
+            hideLoading();
+            return;
+          }
+
+          // Create via SheetDB POST
+          const postRes = await fetch(SHEETDB_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: [toSheetDBFormat(item)] })
+          });
+
+          if (!postRes.ok) {
+            throw new Error(`POST Failed: ${postRes.status}`);
+          }
+
+          // Add to beginning of local array
+          rawRecords.unshift(item);
+          showToast(`บันทึก "${item.venueName}" ลง Google Sheets สำเร็จ`);
+        }
+
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(rawRecords));
+        closeModal();
+        updateAllUI();
+
+      } catch (err) {
+        console.error('Save error:', err);
+        showToast(`บันทึกลง Google Sheets ไม่สำเร็จ: ${err.message}`, 'error');
+        
+        // Optimistic local update fallback
+        if (!editId) {
+          rawRecords.unshift(item);
+        } else {
+          rawRecords = rawRecords.map(r => r.id === editId ? item : r);
+        }
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(rawRecords));
+        closeModal();
+        updateAllUI();
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 3. DELETE SINGLE RECORD
+    // -------------------------------------------------------------
+    async function deleteRecord(id) {
+      const target = rawRecords.find(r => r.id === id);
+      const name = target ? target.venueName : id;
+
+      if (!confirm(`ยืนยันการลบสถานประกอบการ "${name}" (รหัส: ${id}) จาก Google Sheets และระบบหรือไม่?`)) {
+        return;
+      }
+
+      showLoading(`กำลังลบข้อมูล "${name}" ออกจาก Google Sheets...`);
+
+      try {
+        const colKey = encodeURIComponent('id (รหัส)');
+        const valKey = encodeURIComponent(id);
+        const delUrl = `${SHEETDB_API_URL}/${colKey}/${valKey}`;
+
+        const res = await fetch(delUrl, { method: 'DELETE' });
+        if (!res.ok) {
+          throw new Error(`Delete failed: ${res.status}`);
+        }
+
+        rawRecords = rawRecords.filter(r => r.id !== id);
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(rawRecords));
+        showToast(`ลบ "${name}" ออกจาก Google Sheets สำเร็จ`);
+        updateAllUI();
+
+      } catch (err) {
+        console.error('Delete error:', err);
+        showToast(`ลบไม่สำเร็จ: ${err.message}`, 'error');
+        // fallback local deletion
+        rawRecords = rawRecords.filter(r => r.id !== id);
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(rawRecords));
+        updateAllUI();
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 4. MASTER RESET BUTTON ("รีเซ็ตข้อมูลเป็น 0")
+    // -------------------------------------------------------------
+    async function masterResetToZero() {
+      const confirmed = confirm(
+        '⚠️ ยืนยันการ "รีเซ็ตข้อมูลเป็น 0 (Reset Data)" หรือไม่?\n\n' +
+        '• ระบบจะทำการล้างข้อมูลทั้งหมดใน Google Sheets (https://sheetdb.io)\n' +
+        '• สถิติและตารางข้อมูลในแอปจะกลายเป็น 0 แห่งทันที\n' +
+        '• ไม่สามารถย้อนกลับได้ (แต่สามารถกดโหลดข้อมูลตัวอย่างกลับมาใหม่ได้)'
+      );
+
+      if (!confirmed) return;
+
+      showLoading('กำลังล้างข้อมูลทั้งหมดใน Google Sheets (DELETE /all)...');
+
+      try {
+        const res = await fetch(`${SHEETDB_API_URL}/all`, {
+          method: 'DELETE'
+        });
+
+        if (!res.ok) {
+          throw new Error(`Reset failed: ${res.status}`);
+        }
+
+        rawRecords = [];
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify([]));
+        showToast('รีเซ็ตข้อมูลใน Google Sheets และในระบบเป็น 0 เรียบร้อยแล้ว');
+        updateAllUI();
+
+      } catch (err) {
+        console.error('Reset error:', err);
+        showToast(`ล้างข้อมูลใน Google Sheets ไม่สำเร็จ: ${err.message}`, 'error');
+        rawRecords = [];
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify([]));
+        updateAllUI();
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 5. LOAD SAMPLE DATA TO GOOGLE SHEETS
+    // -------------------------------------------------------------
+    async function loadSampleDataToGoogleSheets() {
+      const confirmed = confirm(
+        'ยืนยันการ "โหลดข้อมูลตัวอย่างลง Google Sheets" หรือไม่?\n\n' +
+        '• ระบบจะส่งชุดข้อมูลตัวอย่าง 12 รายการครอบคลุม 16 อำเภอของสงขลาไปยัง Google Sheets ทันที\n' +
+        '• ข้อมูลจะปรากฏบนตารางและหน้าสถิติแบบ Real-time'
+      );
+
+      if (!confirmed) return;
+
+      showLoading('กำลังส่งชุดข้อมูลตัวอย่าง 12 รายการไปยัง Google Sheets...');
+
+      try {
+        const postRes = await fetch(SHEETDB_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: SAMPLE_RECORDS })
+        });
+
+        if (!postRes.ok) {
+          throw new Error(`Upload failed: ${postRes.status}`);
+        }
+
+        // Fetch fresh state from sheets
+        await fetchFromGoogleSheets();
+        showToast('โหลดข้อมูลตัวอย่าง 12 รายการลง Google Sheets สำเร็จเรียบร้อย');
+
+      } catch (err) {
+        console.error('Sample data error:', err);
+        showToast(`ส่งข้อมูลตัวอย่างไม่สำเร็จ: ${err.message}`, 'error');
+        // Local preview fallback
+        rawRecords = SAMPLE_RECORDS.map(normalizeRow);
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(rawRecords));
+        updateAllUI();
+      } finally {
+        hideLoading();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // UI RENDERING & CHARTS
     // -------------------------------------------------------------
     function updateAllUI() {
-      updateModeVisuals();
       renderKPIs();
       renderDistrictsGrid();
+      renderDashboardRecentTable();
       renderTable();
-      renderAudit();
+      renderAnalyticsCharts();
       renderReport();
-      if (typeof initCharts === 'function') {
-        initCharts();
+
+      // Check empty banner
+      const emptyBanner = document.getElementById('emptyDataPromptBanner');
+      if (emptyBanner) {
+        if (rawRecords.length === 0) {
+          emptyBanner.classList.remove('hidden');
+        } else {
+          emptyBanner.classList.add('hidden');
+        }
       }
+
       if (window.lucide) {
-        lucide.createIcons();
-      }
-    }
-
-    function updateModeVisuals() {
-      const badge = document.getElementById('activeModeBadge');
-      const badgeText = document.getElementById('activeModeText');
-      const banner = document.getElementById('modeNotificationBanner');
-      const bannerTitle = document.getElementById('modeBannerTitle');
-      const bannerDesc = document.getElementById('modeBannerDesc');
-      const bannerIcon = document.getElementById('modeBannerIcon');
-      const bannerAction = document.getElementById('modeBannerActionBtn');
-      const btnReal = document.getElementById('btnRealDataMode');
-      const btnMock = document.getElementById('btnLoadMockData');
-
-      if (currentMode === 'real') {
-        // Real Data Mode Active
-        if (badge) badge.className = 'px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-600/70 text-[10px] font-semibold flex items-center gap-1.5 shadow-xs';
-        if (badgeText) badgeText.innerText = 'โหมดข้อมูลจริง (Real Data)';
-
-        if (banner) {
-          banner.className = 'p-3.5 sm:p-4 rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-900 flex items-center justify-between gap-3 text-xs sm:text-sm transition-all shadow-xs';
-        }
-        if (bannerIcon) bannerIcon.className = 'w-7 h-7 rounded-xl bg-emerald-200 text-emerald-800 flex items-center justify-center shrink-0';
-        if (bannerTitle) bannerTitle.innerText = 'กำลังทำงานใน: โหมดข้อมูลจริง (Real Data Mode) · บันทึกอัตโนมัติ';
-        if (bannerDesc) bannerDesc.innerText = 'ข้อมูลสถานประกอบการที่ท่านเพิ่ม/แก้ไขจะถูกบันทึกถาวรลงในเบราว์เซอร์อัตโนมัติ (รีเฟรช F5 ไม่หาย) ปัจจุบันมี ' + records.length + ' รายการ';
-        
-        if (bannerAction) {
-          bannerAction.className = 'px-3 py-1.5 bg-white text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold hover:bg-emerald-100 shadow-2xs';
-          bannerAction.innerText = 'โหลดข้อมูลตัวอย่าง';
-          bannerAction.onclick = loadMockData;
-        }
-
-        if (btnReal) btnReal.className = 'px-3 py-2 bg-emerald-700 ring-2 ring-emerald-400 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm flex items-center gap-1.5 min-h-[40px] whitespace-nowrap';
-        if (btnMock) btnMock.className = 'px-2.5 sm:px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs sm:text-sm font-medium shadow-xs flex items-center gap-1.5 min-h-[40px] whitespace-nowrap';
-      } else {
-        // Mock Data Mode Active
-        if (badge) badge.className = 'px-2.5 py-0.5 rounded-full bg-blue-950 text-blue-300 border border-blue-700/60 text-[10px] font-semibold flex items-center gap-1.5 shadow-xs';
-        if (badgeText) badgeText.innerText = 'โหมดข้อมูลตัวอย่าง (Mock Data)';
-
-        if (banner) {
-          banner.className = 'p-3.5 sm:p-4 rounded-2xl border border-blue-200 bg-blue-50/90 text-blue-950 flex items-center justify-between gap-3 text-xs sm:text-sm transition-all shadow-xs';
-        }
-        if (bannerIcon) bannerIcon.className = 'w-7 h-7 rounded-xl bg-blue-200 text-blue-800 flex items-center justify-center shrink-0';
-        if (bannerTitle) bannerTitle.innerText = 'กำลังทำงานใน: โหมดข้อมูลตัวอย่าง (Mock Data)';
-        if (bannerDesc) bannerDesc.innerText = 'แสดงข้อมูลจำลองสถานบริการ 16 อำเภอของสงขลา ท่านสามารถสลับเข้าสู่โหมดข้อมูลจริงเพื่อเริ่มบันทึกงานจริงจาก 0 ได้ทันที';
-        
-        if (bannerAction) {
-          bannerAction.className = 'px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-2xs';
-          bannerAction.innerText = 'เข้าสู่โหมดข้อมูลจริง';
-          bannerAction.onclick = activateRealDataMode;
-        }
-
-        if (btnReal) btnReal.className = 'px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-1.5 min-h-[40px] whitespace-nowrap';
-        if (btnMock) btnMock.className = 'px-2.5 sm:px-3 py-2 bg-blue-800 ring-2 ring-blue-400 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs flex items-center gap-1.5 min-h-[40px] whitespace-nowrap';
+        window.lucide.createIcons();
       }
     }
 
     function renderKPIs() {
-      const total = records.length;
-      const normal = records.filter(r => r.inspectionStatus === 'normal').length;
-      const violations = records.filter(r => r.inspectionStatus === 'violation' || r.inspectionStatus === 'suspended').length;
-      const pending = records.filter(r => r.inspectionStatus === 'pending_followup' || r.inspectionStatus === 'suspended').length;
+      const total = rawRecords.length;
+      const normal = rawRecords.filter(r => r.status === 'ปกติ').length;
+      const viol = rawRecords.filter(r => r.status === 'พบการกระทำความผิด' || r.status === 'สั่งพักใช้ใบอนุญาต / สั่งปิด').length;
+      const pending = rawRecords.filter(r => r.status === 'อยู่ระหว่างรอตรวจซ้ำ').length;
 
-      const elTotal = document.getElementById('kpiTotal');
-      const elNormal = document.getElementById('kpiNormal');
-      const elViolations = document.getElementById('kpiViolations');
-      const elPending = document.getElementById('kpiPending');
-      const elPercent = document.getElementById('kpiNormalPercent');
-      const elBadge = document.getElementById('recordCountBadge');
-      const elZeroBanner = document.getElementById('zeroDataBanner');
+      document.getElementById('kpiTotalVenues').innerText = total;
+      document.getElementById('kpiNormalVenues').innerText = normal;
+      document.getElementById('kpiViolations').innerText = viol;
+      document.getElementById('kpiPending').innerText = pending;
+      document.getElementById('recordCountBadge').innerText = total;
 
-      if (elTotal) elTotal.innerText = total;
-      if (elNormal) elNormal.innerText = normal;
-      if (elViolations) elViolations.innerText = violations;
-      if (elPending) elPending.innerText = pending;
-      if (elBadge) elBadge.innerText = total;
-
-      if (elPercent) {
-        elPercent.innerText = total > 0 ? Math.round((normal / total) * 100) + '%' : '0%';
-      }
-
-      if (elZeroBanner) {
-        if (total === 0) {
-          elZeroBanner.classList.remove('hidden');
-        } else {
-          elZeroBanner.classList.add('hidden');
-        }
-      }
+      const pct = total > 0 ? Math.round((normal / total) * 100) : 0;
+      document.getElementById('kpiNormalPercent').innerText = `${pct}%`;
     }
 
     function renderDistrictsGrid() {
@@ -858,18 +1070,59 @@
       grid.innerHTML = '';
 
       DISTRICTS.forEach(d => {
-        const distRecs = records.filter(r => r.district === d);
-        const count = distRecs.length;
-        const viols = distRecs.filter(r => r.inspectionStatus === 'violation' || r.inspectionStatus === 'suspended').length;
+        const matches = rawRecords.filter(r => r.district === d);
+        const count = matches.length;
+        const viols = matches.filter(r => r.status === 'พบการกระทำความผิด' || r.status === 'สั่งพักใช้ใบอนุญาต / สั่งปิด').length;
+        const shortName = d.replace('อำเภอ', 'อ.');
 
         grid.innerHTML += `
-          <button onclick="filterByDistrict('${d}')" class="p-2 sm:p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl text-left hover:border-blue-500 hover:bg-blue-50/50 transition-all flex flex-col justify-between min-h-[64px]">
-            <div class="font-bold text-[11px] text-slate-800 line-clamp-1">${d.replace('อำเภอ', 'อ.')}</div>
+          <button onclick="filterByDistrict('${d}')" class="p-2 sm:p-2.5 bg-slate-50 border border-slate-200/90 rounded-xl text-left hover:border-blue-500 hover:bg-blue-50/50 transition-all flex flex-col justify-between min-h-[64px]">
+            <div class="font-bold text-[11px] text-slate-800 line-clamp-1">${shortName}</div>
             <div class="flex items-center justify-between text-xs mt-1">
               <span class="text-blue-700 font-mono font-bold text-[11px]">${count} แห่ง</span>
               ${viols > 0 ? `<span class="text-[9px] bg-rose-100 text-rose-800 font-bold px-1 rounded font-mono">ผิด ${viols}</span>` : ''}
             </div>
           </button>
+        `;
+      });
+    }
+
+    function filterByDistrict(distName) {
+      switchTab('records');
+      const distSelect = document.getElementById('filterDistrict');
+      if (distSelect) {
+        distSelect.value = distName;
+        renderTable();
+      }
+    }
+
+    function renderDashboardRecentTable() {
+      const tbody = document.getElementById('dashboardRecentTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (rawRecords.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-6 text-slate-400">
+              ยังไม่มีข้อมูลใน Google Sheets (คลิก "โหลดข้อมูลตัวอย่างลง Google Sheets" หรือ "เพิ่มผลตรวจใหม่")
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      rawRecords.slice(0, 5).forEach(r => {
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="py-2.5 px-3 font-mono font-bold text-blue-700">${r.id}</td>
+            <td class="py-2.5 px-3 font-bold text-slate-900">${r.venueName}</td>
+            <td class="py-2.5 px-3 text-slate-600">${r.businessType}</td>
+            <td class="py-2.5 px-3">${r.district}</td>
+            <td class="py-2.5 px-3 font-mono">${r.lastInspectionDate}</td>
+            <td class="py-2.5 px-3">${getStatusBadge(r.status)}</td>
+            <td class="py-2.5 px-3 text-slate-600">${r.officer}</td>
+          </tr>
         `;
       });
     }
@@ -880,172 +1133,241 @@
       const type = document.getElementById('filterType')?.value || 'all';
       const status = document.getElementById('filterStatus')?.value || 'all';
 
-      const filtered = records.filter(r => {
+      const filtered = rawRecords.filter(r => {
         if (dist !== 'all' && r.district !== dist) return false;
         if (type !== 'all' && r.businessType !== type) return false;
-        if (status !== 'all' && r.inspectionStatus !== status) return false;
+        if (status !== 'all' && r.status !== status) return false;
         if (search) {
           const matchName = (r.venueName || '').toLowerCase().includes(search);
-          const matchLicense = (r.licenseNumber || '').toLowerCase().includes(search);
-          const matchOfficer = (r.officerName || '').toLowerCase().includes(search);
-          if (!matchName && !matchLicense && !matchOfficer) return false;
+          const matchId = (r.id || '').toLowerCase().includes(search);
+          const matchDist = (r.district || '').toLowerCase().includes(search);
+          const matchOff = (r.officer || '').toLowerCase().includes(search);
+          if (!matchName && !matchId && !matchDist && !matchOff) return false;
         }
         return true;
       });
 
-      // 1. Desktop High-Density Table
       const tbody = document.getElementById('recordsTableBody');
-      if (tbody) {
-        tbody.innerHTML = '';
-        if (filtered.length === 0) {
-          tbody.innerHTML = `
-            <tr>
-              <td colspan="8" class="text-center py-10 text-slate-400">
-                <div class="text-sm font-bold text-slate-600">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</div>
-                <div class="text-xs text-slate-400 mt-1">${records.length === 0 ? 'ขณะนี้ฐานข้อมูลมี 0 รายการ (ท่านสามารถกด "เพิ่มผลตรวจใหม่" หรือ "โหลดข้อมูลตัวอย่าง")' : 'โปรดลองเปลี่ยนคำค้นหาหรือตัวกรอง'}</div>
-              </td>
-            </tr>
-          `;
-        } else {
-          filtered.forEach(r => {
-            let statusPill = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">ปกติ</span>`;
-            if (r.inspectionStatus === 'violation') {
-              statusPill = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800">พบการกระทำผิด</span>`;
-            } else if (r.inspectionStatus === 'pending_followup') {
-              statusPill = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">รอตรวจซ้ำ</span>`;
-            } else if (r.inspectionStatus === 'suspended') {
-              statusPill = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800">สั่งพัก/สั่งปิด</span>`;
-            }
+      if (!tbody) return;
+      tbody.innerHTML = '';
 
-            let typeLabel = r.businessType;
-            if (r.businessType === 'entertainment') typeLabel = 'สถานบริการ (2509)';
-            else if (r.businessType === 'similar_entertainment') typeLabel = 'คล้ายสถานบริการ';
-            else if (r.businessType === 'hotel') typeLabel = 'โรงแรม / ที่พัก';
-            else if (r.businessType === 'controlled') typeLabel = 'กิจการควบคุม';
-
-            tbody.innerHTML += `
-              <tr class="hover:bg-blue-50/40 transition-colors">
-                <td class="py-3 px-4 font-bold text-slate-900">
-                  <div>${r.venueName}</div>
-                  <div class="text-[10px] text-slate-400 font-mono">${r.licenseNumber}</div>
-                </td>
-                <td class="py-3 px-3 text-slate-600">${typeLabel}</td>
-                <td class="py-3 px-3">${r.district}</td>
-                <td class="py-3 px-3 font-mono">${r.lastInspectionDate}</td>
-                <td class="py-3 px-3">${statusPill}</td>
-                <td class="py-3 px-3 text-slate-600">${r.legalAction}</td>
-                <td class="py-3 px-3 text-slate-600">${r.officerName}</td>
-                <td class="py-3 px-4 text-right whitespace-nowrap">
-                  <button onclick="editRecord('${r.id}')" class="px-2 py-1 text-blue-700 hover:text-blue-900 font-bold hover:bg-blue-50 rounded">แก้ไข</button>
-                  <button onclick="deleteRecord('${r.id}')" class="px-2 py-1 text-rose-600 hover:text-rose-800 font-bold hover:bg-rose-50 rounded">ลบ</button>
-                </td>
-              </tr>
-            `;
-          });
-        }
-      }
-
-      // 2. Mobile Cards Grid View
-      const cCards = document.getElementById('container-cards');
-      if (cCards) {
-        cCards.innerHTML = '';
-        if (filtered.length === 0) {
-          cCards.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</div>`;
-        } else {
-          filtered.forEach(r => {
-            const isNorm = r.inspectionStatus === 'normal';
-            cCards.innerHTML += `
-              <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-3">
-                <div class="flex items-start justify-between gap-2">
-                  <div>
-                    <h4 class="font-bold text-slate-900 text-sm">${r.venueName}</h4>
-                    <div class="text-[11px] text-slate-400 font-mono">${r.licenseNumber}</div>
-                  </div>
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isNorm ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
-                    ${r.inspectionStatus}
-                  </span>
-                </div>
-                <div class="text-xs text-slate-600 space-y-1 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                  <div><strong>อำเภอ:</strong> ${r.district}</div>
-                  <div><strong>ประเภท:</strong> ${r.businessType}</div>
-                  <div><strong>วันที่ตรวจ:</strong> ${r.lastInspectionDate}</div>
-                  <div><strong>มาตรการ:</strong> ${r.legalAction}</div>
-                  <div><strong>ผู้ตรวจ:</strong> ${r.officerName}</div>
-                </div>
-                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                  <button onclick="editRecord('${r.id}')" class="px-3.5 py-1.5 bg-blue-50 text-blue-700 font-bold rounded-xl text-xs min-h-[38px]">แก้ไข</button>
-                  <button onclick="deleteRecord('${r.id}')" class="px-3.5 py-1.5 bg-rose-50 text-rose-700 font-bold rounded-xl text-xs min-h-[38px]">ลบรายการ</button>
-                </div>
-              </div>
-            `;
-          });
-        }
-      }
-    }
-
-    function renderAudit() {
-      const list = document.getElementById('auditLogList');
-      if (!list) return;
-      list.innerHTML = '';
-      if (auditLogs.length === 0) {
-        list.innerHTML = '<div class="py-4 text-center text-slate-400">ยังไม่มีประวัติการทำรายการ</div>';
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center py-12 text-slate-400">
+              <div class="text-sm font-bold text-slate-600">ไม่พบรายการสถานประกอบการ</div>
+              <div class="text-xs text-slate-400 mt-1">${rawRecords.length === 0 ? 'ขณะนี้ฐานข้อมูลใน Google Sheets ว่างเปล่า (กดปุ่ม "โหลดข้อมูลตัวอย่าง" หรือ "เพิ่มผลตรวจใหม่")' : 'โปรดลองเปลี่ยนคำค้นหาหรือตัวกรอง'}</div>
+            </td>
+          </tr>
+        `;
         return;
       }
-      auditLogs.slice(0, 30).forEach(l => {
-        list.innerHTML += `
-          <div class="py-2.5 flex items-center justify-between">
-            <div>
-              <span class="font-bold text-slate-900">${l.action}</span>
-              <span class="text-slate-400 block text-[11px]">${l.officer}</span>
-            </div>
-            <span class="text-slate-400 font-mono text-[11px]">${l.time}</span>
-          </div>
+
+      filtered.forEach(r => {
+        tbody.innerHTML += `
+          <tr class="hover:bg-blue-50/40 transition-colors">
+            <td class="py-3 px-3 font-mono font-bold text-blue-700">${r.id}</td>
+            <td class="py-3 px-4 font-bold text-slate-900">${r.venueName}</td>
+            <td class="py-3 px-3 text-slate-600">${r.businessType}</td>
+            <td class="py-3 px-3">${r.district}</td>
+            <td class="py-3 px-3 font-mono">${r.lastInspectionDate}</td>
+            <td class="py-3 px-3">${getStatusBadge(r.status)}</td>
+            <td class="py-3 px-3 text-slate-600">${r.officer}</td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <button onclick="openEditModal('${r.id}')" class="px-2.5 py-1 text-blue-700 hover:text-blue-900 font-bold hover:bg-blue-50 rounded-lg text-xs">แก้ไข</button>
+              <button onclick="deleteRecord('${r.id}')" class="px-2.5 py-1 text-rose-600 hover:text-rose-800 font-bold hover:bg-rose-50 rounded-lg text-xs">ลบ</button>
+            </td>
+          </tr>
         `;
       });
+    }
+
+    function getStatusBadge(status) {
+      if (status === 'ปกติ') {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">ปกติ (ผ่าน)</span>`;
+      } else if (status === 'พบการกระทำความผิด') {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">พบการกระทำผิด</span>`;
+      } else if (status === 'อยู่ระหว่างรอตรวจซ้ำ') {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">รอตรวจซ้ำ</span>`;
+      } else if (status === 'สั่งพักใช้ใบอนุญาต / สั่งปิด') {
+        return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">สั่งพัก/สั่งปิด</span>`;
+      }
+      return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">${status || 'ไม่ระบุ'}</span>`;
+    }
+
+    function renderAnalyticsCharts() {
+      // Donut Chart: Business Types
+      const ctxDonut = document.getElementById('chartDonut')?.getContext('2d');
+      if (ctxDonut) {
+        const types = ['สถานบริการ (พ.ร.บ. 2509)', 'ร้านคล้ายสถานบริการ (คสช. 22/2558)', 'โรงแรม / ที่พัก (พ.ร.บ. โรงแรม 2547)', 'กิจการควบคุม (ของเก่า/ค้าอาวุธปืน)'];
+        const counts = types.map(t => rawRecords.filter(r => r.businessType === t).length);
+
+        if (donutChartInstance) donutChartInstance.destroy();
+        donutChartInstance = new Chart(ctxDonut, {
+          type: 'doughnut',
+          data: {
+            labels: types,
+            datasets: [{
+              data: counts,
+              backgroundColor: ['#1e40af', '#3b82f6', '#10b981', '#f59e0b'],
+              borderWidth: 2,
+              borderColor: '#ffffff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+            }
+          }
+        });
+      }
+
+      // Bar Chart: Districts
+      const ctxBar = document.getElementById('chartBar')?.getContext('2d');
+      if (ctxBar) {
+        const dCounts = DISTRICTS.map(d => rawRecords.filter(r => r.district === d).length);
+        const labels = DISTRICTS.map(d => d.replace('อำเภอ', ''));
+
+        if (barChartInstance) barChartInstance.destroy();
+        barChartInstance = new Chart(ctxBar, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'จำนวนสถานประกอบการ (แห่ง)',
+              data: dCounts,
+              backgroundColor: '#3b82f6',
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true, ticks: { precision: 0 } },
+              x: { ticks: { font: { size: 9 }, maxRotation: 45, minRotation: 45 } }
+            },
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        });
+      }
     }
 
     function renderReport() {
       const el = document.getElementById('reportSummaryContent');
       if (!el) return;
-      const normalCount = records.filter(r => r.inspectionStatus === 'normal').length;
-      const violCount = records.filter(r => r.inspectionStatus === 'violation' || r.inspectionStatus === 'suspended').length;
+      const normal = rawRecords.filter(r => r.status === 'ปกติ').length;
+      const viol = rawRecords.filter(r => r.status === 'พบการกระทำความผิด' || r.status === 'สั่งพักใช้ใบอนุญาต / สั่งปิด').length;
+
       el.innerHTML = `
         <p class="indent-6 text-justify">
-          กราบเรียน ผู้ว่าราชการจังหวัดสงขลา (ผ่าน ปลัดจังหวัดสงขลา): กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา ขอรายงานสรุปผลการจัดระเบียบสังคมและตรวจสอบสถานบริการ โรงแรม และกิจการควบคุม ประจำเดือน ในพื้นที่ 16 อำเภอของจังหวัดสงขลา (โหมด: ${currentMode === 'real' ? 'ข้อมูลจริงปฏิบัติการ' : 'ข้อมูลทดสอบระบบ'}) โดยได้เข้าตรวจสอบสถานประกอบการรวมทั้งสิ้น <strong>${records.length}</strong> แห่ง ผลการตรวจผ่านเกณฑ์มาตรฐานถูกต้อง <strong>${normalCount}</strong> แห่ง และตรวจพบการกระทำผิดหรือไม่ปฏิบัติตามมาตรฐาน <strong>${violCount}</strong> แห่ง โดยชุดปฏิบัติการพิเศษฝ่ายปกครองได้ดำเนินการตามอำนาจหน้าที่และข้อสั่งการของ คสช. ที่ 22/2558 เรียบร้อยแล้ว
+          กราบเรียน ผู้ว่าราชการจังหวัดสงขลา (ผ่าน ปลัดจังหวัดสงขลา): กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา ขอรายงานสรุปผลการจัดระเบียบสังคมและตรวจสอบสถานบริการ โรงแรม และกิจการควบคุม ประจำเดือน ในพื้นที่ 16 อำเภอของจังหวัดสงขลา เชื่อมโยงฐานข้อมูล Google Sheets (SheetDB API) โดยได้เข้าตรวจสอบสถานประกอบการรวมทั้งสิ้น <strong>${rawRecords.length}</strong> แห่ง ผลการตรวจผ่านเกณฑ์มาตรฐานถูกต้อง <strong>${normal}</strong> แห่ง และตรวจพบการกระทำผิดหรือไม่ปฏิบัติตามมาตรฐาน <strong>${viol}</strong> แห่ง โดยชุดปฏิบัติการพิเศษฝ่ายปกครองได้ดำเนินการตามอำนาจหน้าที่และข้อสั่งการของ คสช. ที่ 22/2558 เรียบร้อยแล้ว
         </p>
       `;
     }
 
-    // -------------------------------------------------------------
-    // CRUD OPERATIONS
-    // -------------------------------------------------------------
-    function openModal(editId = '') {
-      const modal = document.getElementById('recordModal');
-      const titleEl = document.getElementById('modalTitle');
-      const idEl = document.getElementById('formEditingId');
-
-      if (!modal) return;
-      modal.classList.remove('hidden');
-
-      if (editId) {
-        const target = records.find(r => r.id === editId);
-        if (target) {
-          if (titleEl) titleEl.innerText = 'แก้ไขข้อมูล: ' + target.venueName;
-          if (idEl) idEl.value = target.id;
-          document.getElementById('formVenueName').value = target.venueName;
-          document.getElementById('formLicense').value = target.licenseNumber;
-          document.getElementById('formType').value = target.businessType;
-          document.getElementById('formDistrict').value = target.district;
-          document.getElementById('formStatus').value = target.inspectionStatus;
-          document.getElementById('formLegal').value = target.legalAction;
-          document.getElementById('formOfficer').value = target.officerName;
-          return;
-        }
+    // Export to CSV with Thai UTF-8 BOM
+    function exportToCSV() {
+      if (rawRecords.length === 0) {
+        alert('ไม่มีข้อมูลสำหรับส่งออก');
+        return;
       }
 
-      if (titleEl) titleEl.innerText = 'บันทึกผลการตรวจใหม่ (Songkhla SecureTrack)';
-      if (idEl) idEl.value = '';
+      let csv = '\uFEFF'; // UTF-8 BOM for Microsoft Excel Thai support
+      csv += 'รหัส,ชื่อสถานประกอบการ,ประเภทกิจการ,อำเภอ,วันที่ตรวจล่าสุด,สถานะการตรวจสอบ,เจ้าหน้าที่ผู้รับผิดชอบ\n';
+
+      rawRecords.forEach(r => {
+        const row = [
+          `"${(r.id || '').replace(/"/g, '""')}"`,
+          `"${(r.venueName || '').replace(/"/g, '""')}"`,
+          `"${(r.businessType || '').replace(/"/g, '""')}"`,
+          `"${(r.district || '').replace(/"/g, '""')}"`,
+          `"${(r.lastInspectionDate || '').replace(/"/g, '""')}"`,
+          `"${(r.status || '').replace(/"/g, '""')}"`,
+          `"${(r.officer || '').replace(/"/g, '""')}"`
+        ];
+        csv += row.join(',') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Songkhla_SecureTrack_GoogleSheets_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Tab switcher
+    function switchTab(tabId) {
+      ['dashboard', 'records', 'analytics', 'report'].forEach(t => {
+        const section = document.getElementById(`view-${t}`);
+        const btn = document.getElementById(`tabBtn-${t}`);
+        if (section) section.classList.add('hidden');
+        if (btn) {
+          btn.className = 'px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5 min-h-[38px] whitespace-nowrap';
+        }
+      });
+
+      const activeSection = document.getElementById(`view-${tabId}`);
+      const activeBtn = document.getElementById(`tabBtn-${tabId}`);
+      if (activeSection) activeSection.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-700 text-white transition-all flex items-center gap-1.5 min-h-[38px] whitespace-nowrap shadow-xs';
+      }
+
+      if (tabId === 'analytics') {
+        setTimeout(renderAnalyticsCharts, 100);
+      }
+    }
+
+    // Modal Helpers
+    function openAddModal() {
+      const modal = document.getElementById('recordModal');
+      const title = document.getElementById('modalTitle');
+      const idInput = document.getElementById('formId');
+      
+      document.getElementById('formEditingId').value = '';
       document.getElementById('recordForm').reset();
+      
+      if (title) title.innerText = 'บันทึกผลการตรวจใหม่ (เชื่อมต่อ Google Sheets)';
+      if (idInput) {
+        idInput.value = `REC-2568-${Math.floor(100 + Math.random() * 900)}`;
+        idInput.readOnly = false;
+      }
+      document.getElementById('formDate').value = new Date().toISOString().slice(0, 10);
+      
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function openEditModal(id) {
+      const modal = document.getElementById('recordModal');
+      const title = document.getElementById('modalTitle');
+      const idInput = document.getElementById('formId');
+      const target = rawRecords.find(r => r.id === id);
+
+      if (!target) return;
+
+      document.getElementById('formEditingId').value = target.id;
+      if (title) title.innerText = `แก้ไขข้อมูล: ${target.venueName} (Google Sheets)`;
+      
+      if (idInput) {
+        idInput.value = target.id;
+        idInput.readOnly = true; // prevent primary key mutation
+      }
+      document.getElementById('formVenueName').value = target.venueName;
+      document.getElementById('formType').value = target.businessType;
+      document.getElementById('formDistrict').value = target.district;
+      document.getElementById('formDate').value = target.lastInspectionDate;
+      document.getElementById('formStatus').value = target.status;
+      document.getElementById('formOfficer').value = target.officer;
+
+      if (modal) modal.classList.remove('hidden');
     }
 
     function closeModal() {
@@ -1053,238 +1375,30 @@
       if (modal) modal.classList.add('hidden');
     }
 
-    function editRecord(id) {
-      openModal(id);
-    }
+    // Initialize page
+    window.addEventListener('DOMContentLoaded', () => {
+      // Populate 16 Districts in dropdowns
+      const formDistrict = document.getElementById('formDistrict');
+      const filterDistrict = document.getElementById('filterDistrict');
 
-    function deleteRecord(id) {
-      const target = records.find(r => r.id === id);
-      if (confirm(`ยืนยันการลบรายการของ "${target ? target.venueName : id}" หรือไม่?`)) {
-        records = records.filter(r => r.id !== id);
-        autoSaveRecords();
-
-        if (target) {
-          addAuditLog('ลบรายการ: ' + target.venueName);
+      DISTRICTS.forEach(d => {
+        if (formDistrict) {
+          const opt = document.createElement('option');
+          opt.value = d;
+          opt.innerText = d;
+          formDistrict.appendChild(opt);
         }
-
-        updateAllUI();
-      }
-    }
-
-    function handleFormSubmit(e) {
-      e.preventDefault();
-      const editId = document.getElementById('formEditingId').value;
-      const vName = document.getElementById('formVenueName').value.trim();
-      const vLicense = document.getElementById('formLicense').value.trim();
-      const vType = document.getElementById('formType').value;
-      const vDist = document.getElementById('formDistrict').value;
-      const vStatus = document.getElementById('formStatus').value;
-      const vLegal = document.getElementById('formLegal').value;
-      const vOfficer = document.getElementById('formOfficer').value.trim();
-
-      if (!vName || !vLicense) {
-        alert('กรุณากรอกชื่อสถานประกอบการและเลขที่ใบอนุญาตให้ครบถ้วน');
-        return;
-      }
-
-      if (editId) {
-        // Edit Isolation: Only update that specific record
-        records = records.map(r => {
-          if (r.id === editId) {
-            return {
-              ...r,
-              venueName: vName,
-              licenseNumber: vLicense,
-              businessType: vType,
-              district: vDist,
-              inspectionStatus: vStatus,
-              legalAction: vLegal,
-              officerName: vOfficer
-            };
-          }
-          return r;
-        });
-
-        addAuditLog('แก้ไขข้อมูล: ' + vName, vOfficer);
-      } else {
-        // Append-Only Logic: Add new record to beginning of list
-        const newRec = {
-          id: 'REC-' + Math.floor(100 + Math.random() * 900),
-          venueName: vName,
-          licenseNumber: vLicense,
-          businessType: vType,
-          district: vDist,
-          subDistrict: '-',
-          lastInspectionDate: new Date().toISOString().slice(0, 10),
-          inspectionStatus: vStatus,
-          legalAction: vLegal,
-          officerName: vOfficer
-        };
-        records = [newRec, ...records];
-
-        addAuditLog('เพิ่มบันทึกผลการตรวจใหม่: ' + vName, vOfficer);
-      }
-
-      // Auto-save immediately to localStorage
-      autoSaveRecords();
-      closeModal();
-      updateAllUI();
-    }
-
-    // -------------------------------------------------------------
-    // NAVIGATION & UTILITY HELPERS
-    // -------------------------------------------------------------
-    function switchTab(tabId) {
-      ['dashboard', 'records', 'analytics', 'report', 'audit'].forEach(t => {
-        const v = document.getElementById('view-' + t);
-        const b = document.getElementById('tabBtn-' + t);
-        if (v) v.classList.add('hidden');
-        if (b) b.className = 'px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap';
+        if (filterDistrict) {
+          const opt = document.createElement('option');
+          opt.value = d;
+          opt.innerText = d;
+          filterDistrict.appendChild(opt);
+        }
       });
 
-      const targetV = document.getElementById('view-' + tabId);
-      const targetB = document.getElementById('tabBtn-' + tabId);
-      if (targetV) targetV.classList.remove('hidden');
-      if (targetB) targetB.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-700 text-white transition-all flex items-center gap-1.5 min-h-[40px] whitespace-nowrap shadow-xs';
-
-      if (tabId === 'analytics') initCharts();
-      if (window.lucide) lucide.createIcons();
-    }
-
-    function filterByDistrict(d) {
-      const el = document.getElementById('filterDistrict');
-      if (el) el.value = d;
-      switchTab('records');
-      renderTable();
-    }
-
-    function setStandAloneViewMode(mode) {
-      currentViewMode = mode;
-      const cTable = document.getElementById('container-table');
-      const cCards = document.getElementById('container-cards');
-      const bTable = document.getElementById('vmBtn-table');
-      const bCards = document.getElementById('vmBtn-cards');
-
-      if (!cTable || !cCards) return;
-
-      if (mode === 'table') {
-        cTable.classList.remove('hidden');
-        cCards.classList.add('hidden');
-        if (bTable) bTable.className = 'px-3 py-1.5 rounded-lg font-bold bg-white text-blue-700 shadow-2xs min-h-[36px] flex items-center gap-1';
-        if (bCards) bCards.className = 'px-3 py-1.5 rounded-lg font-bold text-slate-600 min-h-[36px] flex items-center gap-1';
-      } else {
-        cTable.classList.add('hidden');
-        cCards.classList.remove('hidden');
-        if (bCards) bCards.className = 'px-3 py-1.5 rounded-lg font-bold bg-white text-blue-700 shadow-2xs min-h-[36px] flex items-center gap-1';
-        if (bTable) bTable.className = 'px-3 py-1.5 rounded-lg font-bold text-slate-600 min-h-[36px] flex items-center gap-1';
-      }
-    }
-
-    function exportCSV() {
-      let csv = '\uFEFFชื่อสถานประกอบการ,เลขที่ใบอนุญาต,ประเภท,อำเภอ,วันที่ตรวจ,สถานะ,มาตรการ,เจ้าหน้าที่\r\n';
-      records.forEach(r => {
-        csv += `"${r.venueName}","${r.licenseNumber}","${r.businessType}","${r.district}","${r.lastInspectionDate}","${r.inspectionStatus}","${r.legalAction}","${r.officerName}"\r\n`;
-      });
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `Songkhla_SecureTrack_Report_${new Date().toISOString().slice(0, 10)}.csv`;
-      a.click();
-    }
-
-    // -------------------------------------------------------------
-    // CHART.JS CHARTS (With Zero-Data Protection)
-    // -------------------------------------------------------------
-    let donutChart, barChart;
-    function initCharts() {
-      if (donutChart) donutChart.destroy();
-      if (barChart) barChart.destroy();
-
-      const canvasDonut = document.getElementById('chartDonut');
-      const canvasBar = document.getElementById('chartBar');
-
-      if (canvasDonut) {
-        const ctxDonut = canvasDonut.getContext('2d');
-        const c1 = records.filter(r => r.businessType === 'entertainment').length;
-        const c2 = records.filter(r => r.businessType === 'similar_entertainment').length;
-        const c3 = records.filter(r => r.businessType === 'hotel').length;
-        const c4 = records.filter(r => r.businessType === 'controlled').length;
-        const sum = c1 + c2 + c3 + c4;
-
-        donutChart = new Chart(ctxDonut, {
-          type: 'doughnut',
-          data: {
-            labels: ['สถานบริการ', 'คล้ายสถานบริการ', 'โรงแรม', 'กิจการควบคุม'],
-            datasets: [{
-              data: sum > 0 ? [c1, c2, c3, c4] : [0, 0, 0, 0],
-              backgroundColor: ['#1d4ed8', '#0284c7', '#6366f1', '#64748b']
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false
-          }
-        });
-      }
-
-      if (canvasBar) {
-        const ctxBar = canvasBar.getContext('2d');
-        barChart = new Chart(ctxBar, {
-          type: 'bar',
-          data: {
-            labels: DISTRICTS.map(d => d.replace('อำเภอ', 'อ.')),
-            datasets: [{
-              label: 'จำนวนตรวจแล้ว',
-              data: DISTRICTS.map(d => records.filter(r => r.district === d).length),
-              backgroundColor: '#3b82f6',
-              borderRadius: 6
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false
-          }
-        });
-      }
-    }
-
-    // -------------------------------------------------------------
-    // INITIALIZATION
-    // -------------------------------------------------------------
-    function init() {
-      loadInitialAppState();
-
-      // Populate Districts Filter & Modal Form
-      const filterDist = document.getElementById('filterDistrict');
-      const formDist = document.getElementById('formDistrict');
-      if (filterDist) {
-        filterDist.innerHTML = '<option value="all">ทุกอำเภอในสงขลา (16 อำเภอ)</option>';
-        DISTRICTS.forEach(d => {
-          filterDist.innerHTML += `<option value="${d}">${d}</option>`;
-        });
-      }
-      if (formDist) {
-        formDist.innerHTML = '';
-        DISTRICTS.forEach(d => {
-          formDist.innerHTML += `<option value="${d}">${d}</option>`;
-        });
-      }
-
-      setStandAloneViewMode(currentViewMode);
-      updateAllUI();
-
-      // Live Thai Clock Tick
-      setInterval(() => {
-        const el = document.getElementById('liveClock');
-        if (el) el.innerText = new Date().toLocaleString('th-TH');
-      }, 1000);
-
-      if (window.lucide) {
-        lucide.createIcons();
-      }
-    }
-
-    window.onload = init;
+      // Fetch from Google Sheets immediately
+      fetchFromGoogleSheets();
+    });
   </script>
 </body>
 </html>
