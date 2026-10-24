@@ -356,7 +356,7 @@ export const ReportGeneratorView: React.FC<ReportGeneratorViewProps> = ({ record
           <div className="space-y-8">
             <p className="text-slate-600">
               (ลงชื่อ)........................................................<br />
-              ( นายสมชาย มั่นคง )<br />
+              ( นายเอกประวีร์ แสงคง )<br />
               ปลัดอำเภอหัวหน้ากลุ่มงานความมั่นคง<br />
               ที่ทำการปกครองจังหวัดสงขลา
             </p>

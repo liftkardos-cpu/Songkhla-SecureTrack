@@ -57,7 +57,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       subLabel: 'Venues Database & Records',
       icon: Database,
       badge: totalRecordsCount.toString(),
-      badgeColor: 'bg-slate-700/80 text-slate-300 font-mono',
+      badgeColor: 'bg-slate-200 text-slate-700 font-mono',
     },
     {
       id: 'analytics' as NavTab,
@@ -91,50 +91,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isOpen && (
         <div 
           onClick={onClose}
-          className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 lg:hidden transition-opacity"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 lg:hidden transition-opacity"
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container - Light Tone Theme */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-slate-950 border-r border-slate-800/80 text-white flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-72 bg-white border-r border-slate-200/90 text-slate-800 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 shadow-sm ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Brand Header */}
-        <div className="p-5 border-b border-slate-800/80 flex items-center justify-between bg-gradient-to-b from-slate-900 to-slate-950">
+        <div className="p-5 border-b border-slate-200/80 flex items-center justify-between bg-gradient-to-b from-slate-50/80 to-white">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-indigo-600 border border-blue-400/30 flex items-center justify-center text-amber-300 shadow-lg shadow-blue-900/30 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 border border-blue-400/40 flex items-center justify-center text-amber-300 shadow-md shadow-blue-500/20 shrink-0">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <div className="text-sm font-bold text-white tracking-tight leading-snug font-heading flex items-center gap-1.5">
+              <div className="text-sm font-bold text-slate-900 tracking-tight leading-snug font-heading flex items-center gap-1.5">
                 <span>Songkhla SecureTrack</span>
               </div>
-              <div className="text-[11px] text-amber-400/90 font-medium line-clamp-1">
+              <div className="text-[11px] text-blue-700 font-semibold line-clamp-1">
                 ระบบติดตามและตรวจสอบความปลอดภัย
               </div>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="lg:hidden text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800"
+            className="lg:hidden text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* System Subtitle */}
-        <div className="px-5 py-2.5 bg-blue-950/40 border-b border-blue-900/30 text-[11px] text-blue-200/80 flex items-center justify-between">
-          <span className="font-medium line-clamp-1">กิจการควบคุม จ.สงขลา (16 อำเภอ)</span>
-          <span className="px-1.5 py-0.5 rounded bg-blue-900/60 text-[10px] text-blue-300 border border-blue-700/40 font-mono shrink-0">
+        <div className="px-5 py-2.5 bg-blue-50/70 border-b border-blue-100/80 text-[11px] text-blue-900 flex items-center justify-between">
+          <span className="font-semibold line-clamp-1">กิจการควบคุม จ.สงขลา (16 อำเภอ)</span>
+          <span className="px-1.5 py-0.5 rounded bg-blue-100 text-[10px] text-blue-800 font-mono font-bold shrink-0 border border-blue-200">
             SECURE-V2
           </span>
         </div>
 
         {/* Navigation List */}
         <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto">
-          <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+          <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
             เมนูหลักระบบงาน
           </div>
 
@@ -151,18 +151,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all group ${
                   isActive
-                    ? 'bg-gradient-to-r from-blue-700 to-indigo-700 text-white shadow-md shadow-blue-950/50 font-semibold'
-                    : 'text-slate-300 hover:text-white hover:bg-slate-850 hover:bg-slate-800/60'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/25 font-semibold'
+                    : 'text-slate-600 hover:text-blue-700 hover:bg-blue-50/80'
                 }`}
               >
                 <div className="flex items-center gap-3 text-left">
                   <Icon className={`w-4 h-4 shrink-0 transition-colors ${
-                    isActive ? 'text-amber-300' : 'text-slate-400 group-hover:text-blue-400'
+                    isActive ? 'text-amber-300' : 'text-slate-400 group-hover:text-blue-600'
                   }`} />
                   <div>
                     <div className="leading-tight">{item.label}</div>
                     <div className={`text-[10px] font-normal leading-tight mt-0.5 ${
-                      isActive ? 'text-blue-200' : 'text-slate-400'
+                      isActive ? 'text-blue-100' : 'text-slate-400 group-hover:text-slate-500'
                     }`}>
                       {item.subLabel}
                     </div>
@@ -170,12 +170,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
 
                 {item.badge ? (
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${item.badgeColor}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    isActive ? 'bg-white/20 text-white' : item.badgeColor
+                  }`}>
                     {item.badge}
                   </span>
                 ) : (
                   <ChevronRight className={`w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity ${
-                    isActive ? 'opacity-100 text-blue-200' : 'text-slate-500'
+                    isActive ? 'opacity-100 text-blue-100' : 'text-slate-400'
                   }`} />
                 )}
               </button>
@@ -184,19 +186,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
 
         {/* Bottom Officer & Jurisdiction Card */}
-        <div className="p-3 border-t border-slate-800/80 bg-slate-950/80 space-y-2">
-          <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-2">
-            <div className="flex items-center justify-between text-slate-300 font-medium">
+        <div className="p-3 border-t border-slate-200/90 bg-slate-50/80 space-y-2">
+          <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs text-xs space-y-2">
+            <div className="flex items-center justify-between text-slate-700 font-semibold">
               <span className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                 <span>พื้นที่ 16 อำเภอ</span>
               </span>
-              <span className="text-[10px] text-emerald-400 flex items-center gap-1 font-mono">
-                <span className={`w-1.5 h-1.5 rounded-full ${hasUnsyncedChanges ? 'bg-amber-400 animate-ping' : 'bg-emerald-500'}`}></span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 font-mono ${
+                hasUnsyncedChanges 
+                  ? 'bg-amber-100 text-amber-800 border border-amber-200' 
+                  : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+              }`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${hasUnsyncedChanges ? 'bg-amber-500 animate-ping' : 'bg-emerald-500'}`}></span>
                 {hasUnsyncedChanges ? 'มีร่างรอส่ง' : 'ซิงค์แล้ว'}
               </span>
             </div>
-            <div className="text-[11px] text-slate-400 leading-relaxed">
+            <div className="text-[11px] text-slate-500 leading-relaxed">
               {hasUnsyncedChanges 
                 ? 'ตรวจพบข้อมูลฉบับร่างที่บันทึกในเครื่อง รอส่งขึ้น Google Sheets' 
                 : 'บันทึกฉบับร่างและเชื่อมต่อ Google Sheets ผ่าน SheetDB API'}
@@ -210,8 +216,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               disabled={isSyncing}
               className={`w-full py-2 px-3 rounded-xl border text-[11px] font-bold transition-all flex items-center justify-center gap-1.5 shadow-2xs ${
                 hasUnsyncedChanges
-                  ? 'border-emerald-500/80 bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950/60 ring-1 ring-emerald-400'
-                  : 'border-emerald-500/30 hover:border-emerald-500/60 bg-emerald-950/40 hover:bg-emerald-950/70 text-emerald-300'
+                  ? 'border-emerald-600 bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 ring-1 ring-emerald-400'
+                  : 'border-emerald-200 hover:border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800'
               }`}
               title="ส่งข้อมูลในเครื่องขึ้น Google Sheets"
             >
@@ -229,25 +235,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
               onClick={onPullFromSheet}
               disabled={isSyncing}
-              className="w-full py-1.5 px-3 rounded-xl border border-slate-700/60 hover:border-slate-600 bg-slate-900/70 hover:bg-slate-800 text-slate-300 text-[11px] font-medium transition-all flex items-center justify-center gap-1.5"
+              className="w-full py-1.5 px-3 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-[11px] font-medium transition-all flex items-center justify-center gap-1.5 shadow-2xs"
               title="ดึงข้อมูลที่ตรวจสอบล่าสุดจาก Google Sheets เข้าสู่หน้าจอ"
             >
-              <DownloadCloud className="w-3.5 h-3.5 text-blue-400" />
+              <DownloadCloud className="w-3.5 h-3.5 text-blue-600" />
               <span>📥 ดึงข้อมูลจาก Google Sheets</span>
             </button>
           )}
-
-          {/* Direct link to Google Sheets Single-File HTML */}
-          <a
-            href="/songkhla_securetrack.html"
-            target="_blank"
-            rel="noreferrer"
-            className="w-full py-1.5 px-3 rounded-xl border border-emerald-500/30 hover:border-emerald-500/60 bg-emerald-950/30 text-emerald-400 hover:text-emerald-300 text-[11px] font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs"
-            title="เปิดเว็บแอปไฟล์เดี่ยว Google Sheets Real-time Synchronization"
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>เปิดแอป Google Sheets (HTML)</span>
-          </a>
         </div>
       </aside>
     </>

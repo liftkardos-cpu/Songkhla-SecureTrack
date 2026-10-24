@@ -45,24 +45,24 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl overflow-hidden border border-slate-200 my-6 animate-in fade-in zoom-in-95 duration-150">
-        {/* Modal Top Actions */}
-        <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between no-print">
+        {/* Modal Top Actions - Light Tone */}
+        <div className="bg-gradient-to-r from-slate-50 via-blue-50/40 to-slate-50 border-b border-slate-200 text-slate-900 px-6 py-4 flex items-center justify-between no-print">
           <div className="flex items-center gap-2">
-            <span className="p-1 rounded bg-blue-700 text-amber-300">
+            <span className="p-1.5 rounded-lg bg-blue-600 text-amber-300 shadow-sm shadow-blue-500/20">
               <FileCheck className="w-5 h-5" />
             </span>
             <div>
-              <h3 className="text-base font-bold text-white">บันทึกผลการตรวจสอบสถานประกอบการ</h3>
-              <p className="text-xs text-slate-300">เลขที่อ้างอิง: {record.id}</p>
+              <h3 className="text-base font-bold text-slate-900">บันทึกผลการตรวจสอบสถานประกอบการ</h3>
+              <p className="text-xs text-slate-500">เลขที่อ้างอิง: {record.id}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition-colors flex items-center gap-1.5 text-xs"
+              className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 rounded-md transition-colors flex items-center gap-1.5 text-xs font-medium"
               title="พิมพ์เอกสารบันทึกการตรวจสอบ"
             >
-              <Printer className="w-4 h-4" />
+              <Printer className="w-4 h-4 text-blue-600" />
               <span className="hidden sm:inline">พิมพ์เอกสาร</span>
             </button>
             <button
@@ -70,15 +70,15 @@ export const RecordDetailModal: React.FC<RecordDetailModalProps> = ({
                 onClose();
                 onEdit(record);
               }}
-              className="p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition-colors flex items-center gap-1.5 text-xs"
+              className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 rounded-md transition-colors flex items-center gap-1.5 text-xs font-medium"
               title="แก้ไขข้อมูล"
             >
-              <Edit3 className="w-4 h-4" />
+              <Edit3 className="w-4 h-4 text-emerald-600" />
               <span className="hidden sm:inline">แก้ไข</span>
             </button>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800 transition-colors"
+              className="text-slate-400 hover:text-slate-700 p-1.5 rounded-md hover:bg-slate-200/60 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>

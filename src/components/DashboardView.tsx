@@ -154,21 +154,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
-      {/* 2. Executive Welcome & Hero Stat Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white rounded-2xl p-6 sm:p-7 shadow-lg border border-slate-800 relative overflow-hidden">
+      {/* 2. Executive Welcome & Hero Stat Banner - Light Tone Theme */}
+      <div className="bg-gradient-to-br from-white via-blue-50/60 to-indigo-50/70 text-slate-800 rounded-2xl p-6 sm:p-7 shadow-sm border border-blue-200/80 relative overflow-hidden">
         {/* Subtle decorative glow */}
-        <div className="absolute right-0 top-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute right-0 top-0 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-xs font-semibold text-blue-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100/90 border border-blue-200 text-xs font-semibold text-blue-800">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               Songkhla SecureTrack · กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white leading-snug">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 leading-snug font-heading">
               Songkhla SecureTrack ระบบติดตามและตรวจสอบความปลอดภัยและกิจการควบคุม จังหวัดสงขลา
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
               กำกับดูแลบังคับใช้ตาม พ.ร.บ. สถานบริการ พ.ศ. 2509, คำสั่งหัวหน้า คสช. ที่ 22/2558 (สั่งปิด 5 ปี), และ พ.ร.บ. โรงแรม พ.ศ. 2547 บูรณาการ 16 อำเภอ
             </p>
           </div>
@@ -178,13 +178,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <button
                 onClick={onPushToSheet}
                 disabled={isSyncing}
-                className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+                className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/20"
                 title="ส่งผลตรวจทั้งหมดขึ้น Google Sheets"
               >
                 {isSyncing ? (
                   <RefreshCw className="w-4 h-4 animate-spin text-emerald-200" />
                 ) : (
-                  <UploadCloud className="w-4 h-4 text-emerald-200" />
+                  <UploadCloud className="w-4 h-4 text-emerald-100" />
                 )}
                 <span>📤 ส่งข้อมูลขึ้น Google Sheets</span>
               </button>
@@ -194,25 +194,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <button
                 onClick={onPullFromSheet}
                 disabled={isSyncing}
-                className="px-3.5 py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-xs"
+                className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-2xs"
                 title="ดึงข้อมูลจาก Google Sheets"
               >
-                <DownloadCloud className="w-4 h-4 text-blue-400" />
+                <DownloadCloud className="w-4 h-4 text-blue-600" />
                 <span>📥 ดึงข้อมูลจาก Google Sheets</span>
               </button>
             )}
 
             <button
               onClick={onGoToAnalytics}
-              className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:bg-white/15 border border-white/20 text-white text-xs font-semibold backdrop-blur-md transition-all flex items-center gap-1.5 shadow-xs"
+              className="px-3.5 py-2.5 rounded-xl bg-white/90 hover:bg-white border border-slate-200/90 text-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-2xs"
             >
-              <BarChart2 className="w-4 h-4 text-amber-400" />
+              <BarChart2 className="w-4 h-4 text-blue-600" />
               <span>ดูกราฟวิเคราะห์</span>
             </button>
 
             <button
               onClick={onOpenAddModal}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 active:to-indigo-700 text-white text-xs font-semibold shadow-md transition-all flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 text-white text-xs font-semibold shadow-md transition-all flex items-center gap-2"
             >
               <Building2 className="w-4 h-4" />
               <span>บันทึกผลการตรวจใหม่</span>

@@ -238,7 +238,7 @@ export default function App() {
         'ลบบันทึกข้อมูลสถานประกอบการ (แบบร่างในเครื่อง)',
         target.id,
         target.venueName,
-        'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
+        'นายเอกประวีร์ แสงคง (ปลัดอำเภอ หน.กลุ่มงาน)',
         `ลบรายการตรวจของ ${target.venueName} ออกจากแบบร่างในเครื่อง (รอส่งขึ้น Google Sheets)`
       );
     }
@@ -260,7 +260,7 @@ export default function App() {
         'ส่งข้อมูลขึ้น Google Sheets สำเร็จ',
         'PUSH-SHEET',
         'Google Sheets Backend',
-        'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
+        'นายเอกประวีร์ แสงคง (ปลัดอำเภอ หน.กลุ่มงาน)',
         `ซิงค์ส่งผลตรวจจำนวน ${records.length} รายการขึ้น Google Sheets เรียบร้อยแล้ว`
       );
       alert(`📤 ส่งข้อมูลขึ้น Google Sheets (SheetDB API) สำเร็จเรียบร้อยแล้ว!\n\nจำนวนข้อมูลที่ซิงค์: ${records.length} รายการ`);
@@ -298,7 +298,7 @@ export default function App() {
         'ดึงข้อมูลจาก Google Sheets สำเร็จ',
         'PULL-SHEET',
         'Google Sheets Backend',
-        'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
+        'นายเอกประวีร์ แสงคง (ปลัดอำเภอ หน.กลุ่มงาน)',
         `ดึงข้อมูลการตรวจสอบ ${sheetData.length} รายการจาก Google Sheets เข้าสู่หน้าจอ`
       );
       alert(`📥 ดึงข้อมูลจาก Google Sheets สำเร็จ!\n\nปัจจุบันมีข้อมูล ${sheetData.length} รายการในระบบ`);
@@ -335,7 +335,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100/70 text-slate-900 flex font-sans antialiased selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex font-sans antialiased selection:bg-blue-600 selection:text-white">
       {/* 1. Modern Sidebar for Desktop & Slide-over Drawer for Mobile */}
       <Sidebar
         activeTab={activeTab}

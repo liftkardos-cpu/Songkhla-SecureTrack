@@ -86,7 +86,7 @@ export function mapSheetRowToRecord(row: Record<string, any>): InspectionRecord 
   else if (rawStatus.includes('พัก') || rawStatus.includes('ปิด') || rawStatus === 'suspended') mappedStatus = 'suspended';
   else mappedStatus = 'normal';
 
-  const officer = String(row['officer (เจ้าหน้าที่ผู้รับผิดชอบ)'] || row['officer'] || row['officerName'] || 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)').trim();
+  const officer = String(row['officer (เจ้าหน้าที่ผู้รับผิดชอบ)'] || row['officer'] || row['officerName'] || 'นายเอกประวีร์ แสงคง (ปลัดอำเภอ หน.กลุ่มงาน)').trim();
   const license = String(row['licenseNumber'] || 'สข ' + id.replace(/\D/g, '').slice(-4) || 'สข 01/2567');
   const legal = (mappedStatus === 'normal' ? 'none' : 'rectify_ordered') as InspectionRecord['legalAction'];
 
@@ -131,7 +131,7 @@ export function mapRecordToSheetRow(record: InspectionRecord): SheetDBRow {
     'district (อำเภอ)': record.district,
     'last_inspection_date (วันที่ตรวจล่าสุด)': record.lastInspectionDate || new Date().toISOString().slice(0, 10),
     'status (สถานะการตรวจสอบ)': getInspectionStatusLabel(record.inspectionStatus),
-    'officer (เจ้าหน้าที่ผู้รับผิดชอบ)': record.officerName || 'นายสมชาย มั่นคง (ปลัดอำเภอ หน.กลุ่มงาน)',
+    'officer (เจ้าหน้าที่ผู้รับผิดชอบ)': record.officerName || 'นายเอกประวีร์ แสงคง (ปลัดอำเภอ หน.กลุ่มงาน)',
   };
 }
 

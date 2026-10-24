@@ -84,7 +84,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const currentMeta = tabTitles[activeTab] || tabTitles.dashboard;
 
   return (
-    <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs h-16 flex items-center justify-between px-4 sm:px-6 transition-all">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs h-16 flex items-center justify-between px-4 sm:px-6 transition-all">
       {/* Left: Mobile Toggle & Context Breadcrumb */}
       <div className="flex items-center gap-3">
         <button
@@ -108,8 +108,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       {/* Right: Live Clock, Staging Actions, Urgent Notification & Officer Profile */}
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Live Clock Display (Tabular Numerals) */}
-        <div className="hidden 2xl:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100/80 border border-slate-200/60 text-xs font-mono text-slate-700 tabular-nums shadow-2xs">
-          <Clock className="w-3.5 h-3.5 text-blue-700" />
+        <div className="hidden 2xl:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100/90 border border-slate-200/80 text-xs font-mono text-slate-700 tabular-nums shadow-2xs">
+          <Clock className="w-3.5 h-3.5 text-blue-600" />
           <span>{currentDateTime}</span>
         </div>
 
@@ -120,7 +120,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             className="relative p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors group"
             title={`มีสถานบริการต้องตรวจซ้ำเร่งด่วน ${urgentCount} แห่ง`}
           >
-            <Bell className="w-5 h-5 text-slate-600 group-hover:text-blue-700" />
+            <Bell className="w-5 h-5 text-slate-600 group-hover:text-blue-600" />
             <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white animate-pulse" />
           </button>
         )}
@@ -142,10 +142,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         <button
           onClick={onPullFromSheet}
           disabled={isSyncing}
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 border border-slate-300 transition-all shadow-2xs whitespace-nowrap"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 border border-slate-200 transition-all shadow-2xs whitespace-nowrap"
           title="ดึงข้อมูลที่ผ่านการตรวจสอบล่าสุดจาก Google Sheets (SheetDB API) เข้าสู่หน้าจอ"
         >
-          <DownloadCloud className={`w-3.5 h-3.5 text-blue-700 ${isSyncing ? 'animate-bounce' : ''}`} />
+          <DownloadCloud className={`w-3.5 h-3.5 text-blue-600 ${isSyncing ? 'animate-bounce' : ''}`} />
           <span className="hidden md:inline">📥 ดึงข้อมูลจาก Google Sheets</span>
           <span className="md:hidden">📥 ดึงข้อมูล</span>
         </button>
@@ -176,21 +176,21 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {/* Add Record Primary Button */}
         <button
           onClick={onOpenAddModal}
-          className="flex items-center gap-1.5 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 active:from-blue-800 active:to-indigo-800 text-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 whitespace-nowrap min-h-[38px]"
+          className="flex items-center gap-1.5 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 text-white rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 whitespace-nowrap min-h-[38px]"
         >
           <Plus className="w-4 h-4" />
           <span className="hidden md:inline">เพิ่มบันทึกผลการตรวจ</span>
           <span className="md:hidden">เพิ่มตรวจ</span>
         </button>
 
-        {/* Officer Profile Badge */}
+        {/* Officer Profile Badge - Changed to นายเอกประวีร์ แสงคง */}
         <div className="hidden lg:flex items-center gap-2.5 pl-3 border-l border-slate-200">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-slate-900 to-blue-900 text-amber-300 flex items-center justify-center font-bold text-xs shadow-xs border border-blue-400/20">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-amber-300 flex items-center justify-center font-bold text-xs shadow-xs border border-blue-400/30">
             <User className="w-4 h-4" />
           </div>
           <div className="text-left text-xs leading-tight">
             <div className="font-bold text-slate-900 flex items-center gap-1">
-              <span>นายสมชาย มั่นคง</span>
+              <span>นายเอกประวีร์ แสงคง</span>
               <Shield className="w-3 h-3 text-blue-600" />
             </div>
             <div className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">

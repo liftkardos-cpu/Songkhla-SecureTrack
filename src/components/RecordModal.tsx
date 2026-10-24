@@ -231,24 +231,24 @@ export const RecordModal: React.FC<RecordModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden border border-slate-200 flex flex-col max-h-[92vh] my-auto animate-in fade-in zoom-in-95">
-        {/* Modal Header */}
-        <div className="bg-slate-900 text-white px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
+        {/* Modal Header - Light Tone */}
+        <div className="bg-gradient-to-r from-slate-50 via-blue-50/40 to-slate-50 border-b border-slate-200 text-slate-900 px-5 sm:px-6 py-4 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-blue-700 text-amber-300">
+            <div className="p-2 rounded-xl bg-blue-600 text-amber-300 shadow-sm shadow-blue-500/20">
               <Building className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-white leading-tight">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
                 {editingRecord ? 'แก้ไขบันทึกผลการตรวจสอบสถานประกอบการ' : 'บันทึกผลการตรวจสอบสถานประกอบการใหม่'}
               </h3>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-500">
                 กลุ่มงานความมั่นคง ที่ทำการปกครองจังหวัดสงขลา
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="text-slate-400 hover:text-slate-700 p-2 rounded-xl hover:bg-slate-200/60 transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             title="ปิดหน้าต่าง"
           >
             <X className="w-5 h-5" />
